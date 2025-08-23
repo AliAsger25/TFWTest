@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Stock - Taheri Fireworks</title>
+  <link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+  <nav class="navbar">
+    <div class="logo">🎇 Taheri Fireworks</div>
+    <ul class="nav-links">
+      <li><a href="index.html">Home</a></li>
+      <li><a href="create-bill.html">Create Bill</a></li>
+      <li><a href="stock.html">Stock</a></li>
+    </ul>
+  </nav>
+
+  <main style="padding:20px;">
+    <h2>Stock</h2>
+    <table id="stockTable" border="1" cellpadding="8" cellspacing="0">
+      <thead>
+        <tr>
+          <th>Code</th>
+          <th>Name</th>
+          <th>Price</th>
+          <th>Stock</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </main>
+
+  <script src="assets/script.js"></script>
+  <script>
+    // Load stock list on page load
+    document.addEventListener('DOMContentLoaded', () => {
+      if (typeof loadStock === 'function') loadStock();
+    });
+  </script>
+</body>
+</html>
