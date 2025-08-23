@@ -12,6 +12,15 @@ app.use(express.json());
 app.use("/api/products", require("./routes/products"));
 app.use("/api/bills", require("./routes/bills"));
 
+// Public runtime config for frontend feature flags
+app.get('/api/config', (_req, res) => {
+  res.json({
+    twilioSmsEnabled: Boolean(process.env.TWILIO_ACCOUNT_SID && process.env.TWILIO_AUTH_TOKEN && process.env.TWILIO_FROM_NUMBER),
+    twilioWhatsappEnabled: Boolean(process.env.TWILIO_ACCOUNT_SID && process.env.TWILIO_AUTH_TOKEN && process.env.TWILIO_WHATSAPP_FROM),
+    publicBaseUrl: process.env.PUBLIC_BASE_URL || ''
+  });
+});
+
 // Public invoice HTML view (shareable link)
 app.get("/invoice/:invoiceNo", async (req, res) => {
   try {
@@ -27,6 +36,7 @@ app.get("/invoice/:invoiceNo", async (req, res) => {
       phone: process.env.FIRM_PHONE || "+91XXXXXXXXXX",
       email: process.env.FIRM_EMAIL || "info@taherifireworks.example",
       gstin: process.env.FIRM_GSTIN || "",
+      logoUrl: process.env.FIRM_LOGO_URL || ""
     };
 
     const esc = (s) => String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
@@ -68,7 +78,7 @@ app.get("/invoice/:invoiceNo", async (req, res) => {
 <body>
   <div class="container">
     <div class="header">
-      <h1 class="title">${esc(firm.name)}</h1>
+      ${firm.logoUrl ? `<img src="${esc(firm.logoUrl)}" alt="logo" style="height:48px;vertical-align:middle;margin-right:10px" />` : ''}<h1 class="title" style="display:inline-block;vertical-align:middle;margin:0 0 0 6px">${esc(firm.name)}</h1>
       <div class="muted">${esc(firm.addr1)}${firm.addr2? ", "+esc(firm.addr2):""}</div>
       <div class="muted">${esc(firm.phone)} ${firm.email? " • "+esc(firm.email):""} ${firm.gstin? " • GSTIN: "+esc(firm.gstin):""}</div>
     </div>

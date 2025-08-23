@@ -7,6 +7,8 @@ window.FIRM = {
   ],
   phone: "+91XXXXXXXXXX",
   email: "info@taherifireworks.example",
-  gstin: "GSTIN-XXXXXXXXXXXXXX" // optional
+  gstin: "GSTIN-XXXXXXXXXXXXXX", // optional
+  // Optional logo to embed in PDF header (place a file at frontend/assets/logo.png)
+  logoSrc: "assets/logo.png"
 };
 

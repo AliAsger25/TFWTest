@@ -208,6 +208,20 @@ async function saveBill() {
     console.warn('PDF generation failed:', e);
   }
 
+  // If Twilio WhatsApp is not configured, open WhatsApp share automatically
+  try {
+    const cfgRes = await fetch(`${API_BASE}/config`);
+    if (cfgRes.ok){
+      const cfg = await cfgRes.json();
+      if (!cfg.twilioWhatsappEnabled && data.customerPhone){
+        const phone = String(data.customerPhone).replace(/\D/g,'');
+        const link = `${window.location.origin}/invoice/${data.invoiceNo}`;
+        const msg = encodeURIComponent(`Thanks for shopping at ${window.FIRM?.name || 'Taheri Fireworks'}! Invoice #${data.invoiceNo}. Amount: ₹${fmtMoney(data.grandTotal)}. View: ${link}`);
+        window.open(`https://wa.me/${phone}?text=${msg}`, '_blank');
+      }
+    }
+  } catch (e) { /* ignore */ }
+
   billItems = [];
   renderBillTable();
 }
@@ -218,6 +232,26 @@ async function generateBillPDF(bill){
   const jsPDF = window.jspdf?.jsPDF;
   if (!jsPDF) throw new Error('jsPDF not loaded');
   const doc = new jsPDF();
+
+  // Helper to load logo as data URL
+  async function loadImageDataURL(src){
+    return new Promise((resolve) => {
+      if (!src) return resolve(null);
+      const img = new Image();
+      img.crossOrigin = 'anonymous';
+      img.onload = () => {
+        try {
+          const canvas = document.createElement('canvas');
+          canvas.width = img.naturalWidth; canvas.height = img.naturalHeight;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0);
+          resolve(canvas.toDataURL('image/png'));
+        } catch (e) { resolve(null); }
+      };
+      img.onerror = () => resolve(null);
+      img.src = src;
+    });
+  }
 
   const lineY = (y) => doc.line(14, y, 196, y);
   const rightEdge = 196; // right page margin
@@ -233,6 +267,10 @@ async function generateBillPDF(bill){
 
   // Header with firm details
   const firm = window.FIRM || {};
+  const logoDataUrl = await loadImageDataURL(firm.logoSrc);
+  if (logoDataUrl){
+    try { doc.addImage(logoDataUrl, 'PNG', 14, 10, 24, 24); } catch(e){}
+  }
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(18);
   doc.text(firm.name || 'Taheri Fireworks', 105, 14, { align: 'center' });
