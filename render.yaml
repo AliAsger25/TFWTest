@@ -1,0 +1,38 @@
+services:
+  - type: web
+    name: taheri-fireworks
+    env: node
+    plan: free
+    region: oregon # change if you prefer another region
+    buildCommand: npm --prefix backend ci
+    startCommand: node backend/server.js
+    autoDeploy: true
+    healthCheckPath: /
+    envVars:
+      - key: MONGO_URI
+        sync: false # set this in Render dashboard to your MongoDB connection string
+      - key: PUBLIC_BASE_URL
+        sync: false # set to the https://<service>.onrender.com after first deploy
+      - key: TWILIO_ACCOUNT_SID
+        sync: false
+      - key: TWILIO_AUTH_TOKEN
+        sync: false
+      - key: TWILIO_FROM_NUMBER
+        sync: false
+      - key: TWILIO_WHATSAPP_FROM
+        sync: false
+      - key: FIRM_NAME
+        value: Taheri Fireworks
+      - key: FIRM_ADDR1
+        value: Shop 12, Main Market Road
+      - key: FIRM_ADDR2
+        value: Your City - 400001
+      - key: FIRM_PHONE
+        value: +91XXXXXXXXXX
+      - key: FIRM_EMAIL
+        value: info@taherifireworks.example
+      - key: FIRM_GSTIN
+        value: ""
+      - key: FIRM_LOGO_URL
+        value: ""
+
