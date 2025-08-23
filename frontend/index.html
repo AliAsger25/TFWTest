@@ -2,59 +2,107 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Taheri Fireworks Billing</title>
   <link rel="stylesheet" href="assets/style.css">
 </head>
 <body>
   <!-- Navbar -->
   <nav class="navbar">
-    <div class="logo">🎇 Taheri Fireworks</div>
+    <div class="logo"><span>🎇</span> <span class="brand">Taheri Fireworks</span></div>
     <ul class="nav-links">
       <li><a href="index.html">Home</a></li>
       <li><a href="create-bill.html">Create Bill</a></li>
+      <li><a href="bills.html">Bills</a></li>
       <li><a href="stock.html">Stock</a></li>
       <li><a href="#contact">Contact</a></li>
     </ul>
-    <button onclick="openAddProductModal()">+ Add Product</button>
+    <div class="actions">
+      <button class="btn" onclick="openAddProductModal()">+ Add Product</button>
+      <a class="btn primary" href="create-bill.html">New Invoice</a>
+    </div>
   </nav>
 
-  <!-- Tagline -->
+  <!-- Hero -->
   <header class="hero">
-    <h1>✨ Brighten Every Celebration with Taheri Fireworks ✨</h1>
-    <p>Billing & Inventory System</p>
+    <div class="container">
+      <h1>Brighten Every Celebration</h1>
+      <p>Professional billing and inventory for Taheri Fireworks</p>
+    </div>
   </header>
 
-  <!-- Carousel -->
-  <section class="carousel">
-    <div class="slides">
-      <img src="https://source.unsplash.com/1200x400/?fireworks,festival" alt="Slide 1">
-      <img src="https://source.unsplash.com/1200x400/?fireworks,celebration" alt="Slide 2">
-      <img src="https://source.unsplash.com/1200x400/?fireworks,diwali" alt="Slide 3">
-    </div>
-  </section>
+  <main class="container section">
+    <!-- Carousel -->
+    <section class="carousel card">
+      <div class="slides">
+        <img src="https://images.unsplash.com/photo-1430417934865-589b63ad5c00?q=80&w=1400&auto=format&fit=crop" alt="Fireworks 1">
+        <img src="https://images.unsplash.com/photo-1430931071372-38127bd472b8?q=80&w=1400&auto=format&fit=crop" alt="Fireworks 2">
+        <img src="https://images.unsplash.com/photo-1540151812223-c30b3fab58e2?q=80&w=1400&auto=format&fit=crop" alt="Fireworks 3">
+      </div>
+    </section>
 
-  <!-- Map -->
-  <section id="contact">
-    <h2>📍 Visit Us</h2>
-    <iframe
-      src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3..."
-      width="100%" height="300" style="border:0;" allowfullscreen="">
-    </iframe>
-  </section>
+    <!-- Features -->
+    <section class="section grid cols-3">
+      <div class="card"><div class="card-body">
+        <h3>Modern UI</h3>
+        <p class="small">Clean, responsive interface for faster billing.</p>
+      </div></div>
+      <div class="card"><div class="card-body">
+        <h3>Instant SMS</h3>
+        <p class="small">Customers receive a thank-you SMS with invoice details.</p>
+      </div></div>
+      <div class="card"><div class="card-body">
+        <h3>PDF Invoices</h3>
+        <p class="small">Download professional invoices automatically.</p>
+      </div></div>
+    </section>
+
+    <!-- Map -->
+    <section id="contact" class="section">
+      <h2>📍 Visit Us</h2>
+      <div class="card"><div class="card-body">
+        <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3..." width="100%" height="300" style="border:0;" allowfullscreen=""></iframe>
+      </div></div>
+    </section>
+  </main>
 
   <!-- Add Product Modal -->
   <div id="productModal" class="modal">
     <div class="modal-content">
-      <span class="close" onclick="closeAddProductModal()">&times;</span>
-      <h2>Add New Product</h2>
-      <input type="text" id="prodCode" placeholder="Code">
-      <input type="text" id="prodName" placeholder="Name">
-      <input type="number" id="prodPrice" placeholder="Price">
-      <input type="number" id="prodStock" placeholder="Stock">
-      <button onclick="saveProduct()">Save</button>
+      <div class="modal-header">
+        <h3>Add New Product</h3>
+        <button class="close" onclick="closeAddProductModal()">×</button>
+      </div>
+      <div class="modal-body">
+        <div class="grid cols-2">
+          <div>
+            <label class="label">Code</label>
+            <input class="input" type="text" id="prodCode" placeholder="e.g. TF1001">
+          </div>
+          <div>
+            <label class="label">Name</label>
+            <input class="input" type="text" id="prodName" placeholder="Product name">
+          </div>
+          <div>
+            <label class="label">Price</label>
+            <input class="input" type="number" id="prodPrice" placeholder="0">
+          </div>
+          <div>
+            <label class="label">Stock</label>
+            <input class="input" type="number" id="prodStock" placeholder="0">
+          </div>
+        </div>
+        <div class="mt-4">
+          <button class="btn primary" onclick="saveProduct()">Save Product</button>
+          <button class="btn" onclick="closeAddProductModal()">Cancel</button>
+        </div>
+      </div>
     </div>
   </div>
 
+  <footer class="footer">© Taheri Fireworks</footer>
+
+  <script src="assets/config.js"></script>
   <script src="assets/script.js"></script>
 </body>
 </html>

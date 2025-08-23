@@ -2,6 +2,7 @@ const express = require("express");
 const router = express.Router();
 const Bill = require("../models/Bill");
 const Product = require("../models/Product");
+const { sendThankYouSMS, sendWhatsAppThankYou } = require("../services/sms");
 
 // Get next invoice number
 async function getNextInvoiceNumber() {
@@ -44,6 +45,22 @@ router.post("/", async (req, res) => {
     }
 
     await bill.save();
+
+    // Fire-and-forget SMS; do not block the response
+    try {
+      if (bill.customerPhone) {
+        sendThankYouSMS(bill.customerPhone, bill).catch((e) => {
+          console.warn("SMS send failed:", e?.message || e);
+        });
+        // WhatsApp (optional)
+        sendWhatsAppThankYou(bill.customerPhone, bill).catch((e) => {
+          console.warn("WhatsApp send failed:", e?.message || e);
+        });
+      }
+    } catch (e) {
+      console.warn("SMS/WhatsApp scheduling error:", e?.message || e);
+    }
+
     res.json(bill);
   } catch (err) {
     res.status(400).json({ error: err.message });

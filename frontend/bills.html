@@ -3,8 +3,11 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Stock - Taheri Fireworks</title>
+  <title>Bills - Taheri Fireworks</title>
   <link rel="stylesheet" href="assets/style.css">
+  <!-- jsPDF for downloading invoices from list page as well -->
+  <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+  <script src="assets/config.js"></script>
 </head>
 <body>
   <nav class="navbar">
@@ -15,18 +18,26 @@
       <li><a href="bills.html">Bills</a></li>
       <li><a href="stock.html">Stock</a></li>
     </ul>
+    <div class="actions">
+      <a class="btn primary" href="create-bill.html">New Invoice</a>
+    </div>
   </nav>
 
   <main class="container section">
-    <h2>Stock</h2>
+    <div class="flex items-center justify-between">
+      <h2>All Bills</h2>
+      <input class="input" style="max-width:280px" id="billsSearch" placeholder="Search by invoice, name or phone" oninput="filterBills()" />
+    </div>
+
     <div class="card mt-3"><div class="card-body">
-      <table id="stockTable" class="table">
+      <table id="billsTable" class="table">
         <thead>
           <tr>
-            <th>Code</th>
-            <th>Name</th>
-            <th>Price</th>
-            <th>Stock</th>
+            <th>Invoice</th>
+            <th>Date</th>
+            <th>Customer</th>
+            <th>Phone</th>
+            <th>Total</th>
             <th>Actions</th>
           </tr>
         </thead>
@@ -38,8 +49,9 @@
   <script src="assets/script.js"></script>
   <script>
     document.addEventListener('DOMContentLoaded', () => {
-      if (typeof loadStock === 'function') loadStock();
+      if (typeof loadBills === 'function') loadBills();
     });
   </script>
 </body>
 </html>
+

@@ -19,6 +19,15 @@ router.get("/", async (_req, res) => {
   res.json(products);
 });
 
+// Search products by code or name (simple contains match)
+router.get("/search/q", async (req, res) => {
+  const q = String(req.query.q || '').trim();
+  if (!q) return res.json([]);
+  const regex = new RegExp(q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i');
+  const items = await Product.find({ $or: [{ code: regex }, { name: regex }] }).limit(20);
+  res.json(items);
+});
+
 // Get by code
 router.get("/:code", async (req, res) => {
   const product = await Product.findOne({ code: req.params.code });
