@@ -260,9 +260,9 @@ async function generateBillPDF(bill){
 
   // Column positions
   const X_CODE = 14;
-  const X_NAME = 34;
+  const X_NAME = 40;   // wider name column for better alignment
   const X_QTY = 140;
-  const X_PRICE = 168;
+  const X_PRICE = 170;
   const X_AMT = rightEdge;
 
   // Header with firm details
@@ -305,16 +305,21 @@ async function generateBillPDF(bill){
   const rowH = 8;
   const items = bill.items || [];
   items.forEach(it => {
-    if (y > 260) { // new page
+    const nameText = String(it.name || '');
+    const nameLines = doc.splitTextToSize(nameText, 92); // wrap name within ~92px width
+    const lines = Math.max(1, nameLines.length);
+    // New page if not enough space for wrapped row
+    if (y + (lines - 1) * rowH > 270) {
       doc.addPage();
       y = 20;
     }
+    // First line
     doc.text(String(it.code || ''), X_CODE, y);
-    doc.text(String(it.name || ''), X_NAME, y);
+    doc.text(nameLines, X_NAME, y); // jsPDF prints multi-lines starting at y
     col(X_QTY, String(it.qty || 0), y, true);
     col(X_PRICE, `₹${fmtMoney(it.price)}`, y, true);
     col(X_AMT, `₹${fmtMoney(it.total)}`, y, true);
-    y += rowH;
+    y += rowH * lines;
   });
 
   lineY(y + 2);
