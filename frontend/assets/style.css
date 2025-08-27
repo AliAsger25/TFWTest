@@ -112,3 +112,38 @@ input[type="search"] { -webkit-appearance: none; }
 .flex { display: flex; } .justify-between { justify-content: space-between; } .items-center { align-items: center; }
 .text-right { text-align: right; }
 .small { font-size: 12px; color: var(--muted); }
+
+/* Right align numeric cells in common tables */
+.table th:nth-child(4), .table td:nth-child(4),
+.table th:nth-child(5), .table td:nth-child(5) { text-align: right; }
+
+/* Landing: tagline front-and-center */
+.hero-tagline { text-align: center; margin: 10px 0 24px; }
+.hero-tagline .kicker { color: var(--accent); font-weight: 700; letter-spacing: 0.08em; font-size: 12px; text-transform: uppercase; }
+.hero-tagline h1 { margin: 8px 0 6px; font-size: 44px; letter-spacing: -0.02em; }
+.hero-tagline p { margin: 0; color: var(--muted); font-size: 16px; }
+
+/* 3-up focus carousel */
+.hero3 { position: relative; overflow: hidden; border-radius: 18px; border: 1px solid var(--border); background: rgba(255,255,255,0.02); }
+.hero3 .slots { display: grid; grid-template-columns: 1fr 1.2fr 1fr; gap: 12px; padding: 14px; align-items: center; }
+.hero3 .slot { position: relative; height: 360px; border-radius: 14px; overflow: hidden; }
+.hero3 .slot img { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform .5s ease, filter .5s ease, opacity .5s ease; }
+.hero3 .slot.left img, .hero3 .slot.right img { transform: scale(0.9); filter: blur(2px) brightness(0.8); }
+.hero3 .slot.center img { transform: scale(1.02); filter: none; }
+
+/* Brand ticker */
+.brand-ticker { margin-top: 18px; border: 1px solid var(--border); border-radius: 12px; overflow: hidden; background: rgba(255,255,255,0.02); }
+.brand-track { display: flex; gap: 16px; padding: 10px; animation: marquee 20s linear infinite; width: max-content; }
+.brand { background: #0f1630; color: var(--text); border: 1px solid var(--border); border-radius: 10px; padding: 8px 14px; white-space: nowrap; font-weight: 700; letter-spacing: 0.4px; opacity: 0.9; }
+@keyframes marquee {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+/* Print tweaks for A4 */
+@media print {
+  body { background: white; color: black; }
+  .navbar, .footer, .actions, .brand-ticker { display: none !important; }
+  .container { max-width: 190mm; margin: 10mm auto; padding: 0; }
+  .table th, .table td { padding: 6px 8px; }
+}

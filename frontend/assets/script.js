@@ -128,9 +128,14 @@ function selectProductSuggestion(encodedCode){
 }
 expose('selectProductSuggestion', selectProductSuggestion);
 
+function sortBillItems(){
+  billItems.sort((a, b) => String(a.code).localeCompare(String(b.code), undefined, { numeric: true, sensitivity: 'base' }));
+}
+
 function renderBillTable() {
   const tbody = document.querySelector('#billTable tbody');
   if (!tbody) return;
+  sortBillItems();
   tbody.innerHTML = billItems.map(item => `
     <tr>
       <td>${item.code}</td>
@@ -138,8 +143,8 @@ function renderBillTable() {
       <td>
         <input class="input" type="number" min="1" value="${item.qty}" style="width:80px" onchange="updateItemQty('${item.code}', this.value)" />
       </td>
-      <td>₹${fmtMoney(item.price)}</td>
-      <td>₹${fmtMoney(item.total)}</td>
+      <td class="text-right">₹${fmtMoney(item.price)}</td>
+      <td class="text-right">₹${fmtMoney(item.total)}</td>
       <td><button class="btn danger" onclick="removeItem('${item.code}')">Remove</button></td>
     </tr>
   `).join("");
@@ -181,10 +186,10 @@ async function saveBill() {
 
   const grandTotal = billItems.reduce((s, i) => s + i.total, 0) - (billDiscount || 0);
 
-  const payload = {
+const payload = {
     customerName,
     customerPhone,
-    items: billItems,
+    items: billItems.slice().sort((a, b) => String(a.code).localeCompare(String(b.code), undefined, { numeric: true, sensitivity: 'base' })),
     discount: billDiscount,
     grandTotal: Math.max(0, grandTotal)
   };
@@ -366,8 +371,10 @@ function renderBillsTable(bills){
       <td>${new Date(b.date).toLocaleDateString()}</td>
       <td>${b.customerName || 'Walk-in'}</td>
       <td>${b.customerPhone || '-'}</td>
-      <td>₹${fmtMoney(b.grandTotal)}</td>
+      <td class="text-right">₹${fmtMoney(b.grandTotal)}</td>
       <td class="actions">
+        <button class="btn" onclick='editBill(${JSON.stringify(b.invoiceNo)})'>Edit</button>
+        <button class="btn danger" onclick='deleteBill(${JSON.stringify(b.invoiceNo)})'>Delete</button>
         <button class="btn" onclick='downloadBill(${JSON.stringify(b.invoiceNo)})'>Download</button>
         <button class="btn" onclick='shareBillWhatsApp(${JSON.stringify(b.invoiceNo)})'>WhatsApp</button>
       </td>
@@ -457,6 +464,25 @@ async function shareBillWhatsApp(invoiceNo){
 }
 expose('shareBillWhatsApp', shareBillWhatsApp);
 
+// Edit bill: navigate to create-bill with invoice param
+function editBill(invoiceNo){
+  window.location.href = `create-bill.html?invoice=${encodeURIComponent(invoiceNo)}`;
+}
+expose('editBill', editBill);
+
+// Delete bill
+async function deleteBill(invoiceNo){
+  if (!confirm(`Delete bill #${invoiceNo}? This will restore stock.`)) return;
+  const res = await fetch(`${API_BASE}/bills/${encodeURIComponent(invoiceNo)}`, { method: 'DELETE' });
+  if (!res.ok) {
+    const { error } = await res.json().catch(() => ({}));
+    return alert('❌ Delete failed' + (error ? `: ${error}` : ''));
+  }
+  alert('🗑️ Bill deleted');
+  if (typeof loadBills === 'function') loadBills();
+}
+expose('deleteBill', deleteBill);
+
 // ---------- Stock page ----------
 async function loadStock() {
   const tableBody = document.querySelector('#stockTable tbody');
@@ -508,7 +534,81 @@ async function deleteProduct(code) {
 expose('deleteProduct', deleteProduct);
 
 // ---------- Global listeners ----------
+// Landing page: 3-up carousel
+function initLandingPage(){
+  const left = document.getElementById('hero-img-left');
+  const center = document.getElementById('hero-img-center');
+  const right = document.getElementById('hero-img-right');
+  if (!left || !center || !right) return; // not on landing
+  const IMAGES = [
+    'https://images.unsplash.com/photo-1430417934865-589b63ad5c00?q=80&w=1400&auto=format&fit=crop',
+    'https://images.unsplash.com/photo-1430931071372-38127bd472b8?q=80&w=1400&auto=format&fit=crop',
+    'https://images.unsplash.com/photo-1540151812223-c30b3fab58e2?q=80&w=1400&auto=format&fit=crop'
+  ];
+  let idx = 1;
+  function render(){
+    const L = (idx - 1 + IMAGES.length) % IMAGES.length;
+    const C = idx % IMAGES.length;
+    const R = (idx + 1) % IMAGES.length;
+    left.src = IMAGES[L];
+    center.src = IMAGES[C];
+    right.src = IMAGES[R];
+  }
+  render();
+  setInterval(() => { idx = (idx + 1) % IMAGES.length; render(); }, 3500);
+}
+
+// Create-bill page: edit mode support
+async function initCreateBillPage(){
+  const url = new URL(window.location.href);
+  const inv = url.searchParams.get('invoice');
+  if (!inv) return; // new bill mode
+  window.__EDIT_INVOICE_NO__ = inv;
+  // Load bill and populate UI
+  const res = await fetch(`${API_BASE}/bills/${encodeURIComponent(inv)}`);
+  if (!res.ok) return alert('Failed to load bill for editing');
+  const bill = await res.json();
+  qs('customerName').value = bill.customerName || 'Walk-in';
+  qs('customerPhone').value = bill.customerPhone || '';
+  billItems = (bill.items || []).map(i => ({ code: i.code, name: i.name, qty: i.qty, price: i.price, total: i.total }));
+  const discountEl = qs('discount');
+  if (discountEl) discountEl.value = bill.discount || 0;
+  renderBillTable();
+  // Update the save button to "Update Bill"
+  const saveBtn = document.querySelector('button.btn.primary[onclick="saveBill()"]');
+  if (saveBtn) { saveBtn.textContent = 'Update Bill'; saveBtn.setAttribute('onclick', 'updateBill()'); }
+}
+expose('initCreateBillPage', initCreateBillPage);
+
+async function updateBill(){
+  const inv = window.__EDIT_INVOICE_NO__;
+  if (!inv) return;
+  const customerName = qs("customerName")?.value?.trim() || "Walk-in";
+  const customerPhone = qs("customerPhone")?.value?.trim() || "";
+  const discountInput = qs("discount");
+  billDiscount = parseFloat(discountInput?.value || 0);
+  if (!billItems.length) return alert('Add at least one product');
+  const grandTotal = billItems.reduce((s, i) => s + i.total, 0) - (billDiscount || 0);
+  const payload = {
+    customerName,
+    customerPhone,
+    items: billItems.slice().sort((a, b) => String(a.code).localeCompare(String(b.code), undefined, { numeric: true, sensitivity: 'base' })),
+    discount: billDiscount,
+    grandTotal: Math.max(0, grandTotal)
+  };
+  const res = await fetch(`${API_BASE}/bills/${encodeURIComponent(inv)}`, {
+    method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload)
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) return alert('❌ Update failed' + (data.error ? `: ${data.error}` : ''));
+  alert('✅ Bill updated');
+  window.location.href = 'bills.html';
+}
+expose('updateBill', updateBill);
+
 window.addEventListener('DOMContentLoaded', () => {
   const discountEl = qs('discount');
   if (discountEl) discountEl.addEventListener('input', () => renderBillTable());
+  initLandingPage();
+  initCreateBillPage();
 });

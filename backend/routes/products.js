@@ -13,9 +13,9 @@ router.post("/", async (req, res) => {
   }
 });
 
-// Get all products
+// Get all products (sorted by code ascending)
 router.get("/", async (_req, res) => {
-  const products = await Product.find();
+  const products = await Product.find().sort({ code: 1 });
   res.json(products);
 });
 

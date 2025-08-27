@@ -60,7 +60,7 @@ app.get("/invoice/:invoiceNo", async (req, res) => {
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
     body { font-family: -apple-system, Segoe UI, Roboto, Arial, sans-serif; background: #f5f7fb; color: #1a1f36; margin: 0; }
-    .container { max-width: 800px; margin: 24px auto; background: #fff; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.08); overflow: hidden; }
+    .container { max-width: 210mm; margin: 10mm auto; background: #fff; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.08); overflow: hidden; }
     .header { padding: 20px 24px; border-bottom: 1px solid #eee; }
     .title { margin: 0; font-size: 20px; }
     .muted { color: #667085; font-size: 13px; }
@@ -72,7 +72,7 @@ app.get("/invoice/:invoiceNo", async (req, res) => {
     .right { text-align: right; }
     .totals { width: 300px; margin-left: auto; }
     .footer { padding: 14px 24px; font-size: 12px; color: #667085; border-top: 1px solid #eee; }
-    @media print { .container { box-shadow: none; } }
+    @media print { body { background: #fff; } .container { box-shadow: none; max-width: 190mm; margin: 10mm auto; } }
   </style>
 </head>
 <body>
