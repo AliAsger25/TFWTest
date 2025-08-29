@@ -1,4 +1,4 @@
-const API_BASE = `${window.location.origin}/api`;
+const API_BASE = `http://localhost:3000/api`;
 
 // ---------- Helpers ----------
 function qs(id) { return document.getElementById(id); }

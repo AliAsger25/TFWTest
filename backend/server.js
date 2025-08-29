@@ -135,7 +135,7 @@ app.get("/", (_req, res) => {
 });
 
 // MongoDB connection
-const MONGO_URI = process.env.MONGO_URI;
+const MONGO_URI = "mongodb+srv://aliasgerdemo4:aliasger2002@cluster0.v8dps5x.mongodb.net/TaheriFireWorks?retryWrites=true&w=majority&appName=Cluster0";
 if (!MONGO_URI) {
   console.error("Missing MONGO_URI env var. Please set it to your MongoDB connection string.");
   process.exit(1);
@@ -145,7 +145,7 @@ mongoose
   .connect(MONGO_URI)
   .then(() => {
     console.log("✅ MongoDB connected");
-    const PORT = process.env.PORT || 5050;
-    app.listen(PORT, () => console.log(`🚀 Server running on http://localhost:${PORT}`));
+  const PORT = process.env.PORT || 3000;
+  app.listen(PORT, () => console.log(`🚀 Server running on http://localhost:${PORT}`));
   })
   .catch((err) => console.error("MongoDB connection error:", err));
