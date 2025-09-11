@@ -4,29 +4,27 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Taheri Fireworks Billing</title>
-  <link rel="stylesheet" href="assets/style.css">
   <style>
-    body {
-      min-height: 100vh;
-      margin: 0;
-  background: linear-gradient(135deg, #0a1020 0%, #1a2238 100%) !important;
+    /* Global Reset */
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body {
+      height: 100%;
+      font-family: Arial, sans-serif;
+      background: linear-gradient(135deg, #0a1020 0%, #1a2238 100%);
+      color: #fff;
       overflow-x: hidden;
     }
-    .container {
-      max-width: 1200px;
-      margin: 0 auto;
-      padding: 0 20px;
-    }
-    /* Floating shapes animation for visual appeal */
+
+    /* Floating background shapes */
     .float-shape {
       position: absolute;
       border-radius: 50%;
-      opacity: 0.18;
+      opacity: 0.15;
       filter: blur(8px);
       z-index: -1;
       animation: float 16s ease-in-out infinite alternate;
     }
-    .float1 { width: 180px; height: 180px; background: #fff; top: 8%; left: 5%; animation-delay: 0s; }
+    .float1 { width: 180px; height: 180px; background: #fff; top: 8%; left: 5%; }
     .float2 { width: 120px; height: 120px; background: #e67e22; top: 70%; left: 80%; animation-delay: 2s; }
     .float3 { width: 90px; height: 90px; background: #fff; top: 60%; left: 20%; animation-delay: 4s; }
     .float4 { width: 100px; height: 100px; background: #4f6cb7; top: 30%; left: 60%; animation-delay: 6s; }
@@ -35,138 +33,156 @@
       0% { transform: translateY(0) scale(1); }
       100% { transform: translateY(-40px) scale(1.1); }
     }
-    .hero {
-      text-align: center;
-      margin-top: 48px;
-      position: relative;
-      z-index: 1;
-    }
-    .hero-card {
-      background: rgba(20, 24, 38, 0.85);
-      border-radius: 32px;
-      box-shadow: 0 8px 32px rgba(44,64,128,0.22);
-      padding: 48px 32px 32px 32px;
-      backdrop-filter: blur(12px);
-      margin-bottom: 32px;
-      display: inline-block;
-      max-width: 700px;
+
+    /* Navbar */
+    .navbar {
       width: 100%;
-      animation: fadeIn 1.2s;
-      border: 1.5px solid rgba(255,255,255,0.08);
+      padding: 16px 32px;
+      background: rgba(10,16,32,0.95);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+      position: sticky;
+      top: 0;
+      z-index: 10;
     }
-    .cta-btn {
-      display: inline-block;
-      margin-top: 24px;
-      padding: 16px 40px;
-      font-size: 1.3rem;
-      font-weight: 700;
+    .navbar .logo { font-size: 1.5rem; font-weight: bold; }
+    .nav-links { list-style: none; display: flex; gap: 24px; }
+    .nav-links a { text-decoration: none; color: #fff; font-weight: 500; transition: all 0.3s ease; }
+    .nav-links a:hover { color: #e67e22; transform: scale(1.1); }
+
+    .actions { display: flex; gap: 12px; }
+    .btn {
+      padding: 8px 18px;
+      border-radius: 20px;
+      border: 1px solid rgba(255,255,255,0.2);
+      background: transparent;
       color: #fff;
-      background: linear-gradient(90deg, #e67e22 0%, #4f6cb7 100%);
-      border: none;
-      border-radius: 24px;
-      box-shadow: 0 4px 24px rgba(44,64,128,0.18);
       cursor: pointer;
-      transition: transform 0.2s, box-shadow 0.2s;
-      text-shadow: 0 2px 8px rgba(44,64,128,0.18);
-      letter-spacing: 1px;
+      font-weight: 600;
+      transition: all 0.3s ease;
     }
-    .cta-btn:hover {
-      transform: scale(1.07);
-      box-shadow: 0 8px 32px rgba(44,64,128,0.28);
+    .btn:hover { transform: scale(1.1); background: rgba(255,255,255,0.1); }
+    .btn.primary { background: linear-gradient(90deg,#e67e22,#4f6cb7); border: none; }
+    .btn.primary:hover { box-shadow: 0 0 15px rgba(230,126,34,0.7); }
+
+    /* Hero Section */
+    .hero { width: 100%; text-align: center; padding: 64px 20px 32px 20px; }
+    .hero-card {
+      background: rgba(20,24,38,0.85);
+      border-radius: 24px;
+      padding: 48px 32px;
+      margin: 0 auto;
+      max-width: 700px;
+      border: 1px solid rgba(255,255,255,0.08);
+      backdrop-filter: blur(10px);
+      transition: all 0.3s ease;
     }
+    .hero-card:hover { transform: scale(1.03); box-shadow: 0 0 20px rgba(255,255,255,0.1); }
+    .hero-tagline h1 { font-size: 3rem; font-weight: 800; margin-bottom: 12px; }
+    .hero-tagline p { font-size: 1.2rem; color: #e3e7ee; }
+    .kicker { font-size: 1rem; color: #e67e22; letter-spacing: 2px; margin-bottom: 8px; }
+    .cta-btn {
+      margin-top: 24px;
+      padding: 14px 36px;
+      border-radius: 24px;
+      font-size: 1.2rem;
+      font-weight: 700;
+      background: linear-gradient(90deg,#e67e22,#4f6cb7);
+      border: none;
+      cursor: pointer;
+      color: #fff;
+      transition: all 0.3s ease;
+    }
+    .cta-btn:hover { transform: scale(1.1); box-shadow: 0 0 18px rgba(79,108,183,0.7); }
+
+    /* Highlights */
     .highlights {
       display: flex;
       justify-content: center;
-      gap: 32px;
-      margin: 48px 0 0 0;
+      gap: 24px;
       flex-wrap: wrap;
+      margin-top: 32px;
     }
     .highlight-card {
       background: rgba(255,255,255,0.08);
-      border-radius: 18px;
-      box-shadow: 0 2px 12px rgba(44,64,128,0.10);
-      padding: 28px 22px;
-      min-width: 220px;
-      max-width: 260px;
+      padding: 24px;
+      border-radius: 16px;
+      min-width: 200px;
       text-align: center;
-      color: #fff;
-      font-size: 1.1rem;
-      font-weight: 500;
-      border: 1px solid rgba(255,255,255,0.06);
-      transition: transform 0.2s, box-shadow 0.2s;
+      transition: all 0.3s ease;
     }
-    .highlight-card:hover {
-      transform: translateY(-8px) scale(1.04);
-      box-shadow: 0 8px 32px rgba(44,64,128,0.18);
-      background: rgba(255,255,255,0.14);
+    .highlight-card:hover { transform: scale(1.1); background: rgba(255,255,255,0.15); }
+
+    /* Carousel */
+    .carousel-wrapper {
+      position: relative;
+      width: 100%;
+      max-width: 1000px;
+      margin: 30px auto;
+      height: 220px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
     }
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(40px); }
-      to { opacity: 1; transform: translateY(0); }
+    .carousel-track {
+      display: flex;
+      width: max-content;
+      animation: scroll 100s linear infinite;
+      gap: 60px;
+      align-items: center;
     }
-    .hero-tagline h1 {
-      font-size: 3rem;
-      font-weight: 800;
-      color: #fff;
-      margin-bottom: 12px;
-      text-shadow: 0 2px 16px rgba(44,64,128,0.18);
+    .carousel-track img {
+      height: 140px;
+      opacity: 0.9;
+      transition: transform 0.3s;
     }
-    .hero-tagline p {
-      font-size: 1.3rem;
-      color: #e3e7ee;
-      margin-bottom: 0;
-      font-weight: 500;
+    .carousel-track img:hover {
+      transform: scale(1.1);
     }
-    .kicker {
-      font-size: 1.2rem;
+    .center-logo {
+      position: absolute;
+      z-index: 5;
+      width: 200px;
+      height: 200px;
+      border-radius: 50%;
+      background: #fff;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      box-shadow: 0 0 25px rgba(255,255,255,0.6);
+    }
+    .center-logo img {
+      max-width: 140px;
+      max-height: 140px;
+      object-fit: contain;
+    }
+    @keyframes scroll {
+      from { transform: translateX(0); }
+      to { transform: translateX(-50%); }
+    }
+
+    /* Visit Us Section */
+    .container.section {
+      max-width: 1000px;
+      margin: 60px auto;
+      text-align: center;
+      padding: 20px;
+    }
+    .container.section h2 {
+      font-size: 2rem;
+      margin-bottom: 20px;
       color: #e67e22;
-      font-weight: 700;
-      letter-spacing: 2px;
-      margin-bottom: 8px;
-      text-shadow: 0 1px 8px rgba(44,64,128,0.12);
     }
-    .hero {
-      text-align: center;
-      margin-top: 24px;
+    .container.section iframe {
+      border-radius: 16px;
+      box-shadow: 0 0 20px rgba(0,0,0,0.4);
     }
-    .hero-tagline {
-      margin-bottom: 32px;
-      text-align: center;
-    }
-    .hero3.card {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      margin-bottom: 32px;
-    }
-    .slots {
-      display: flex;
-      gap: 16px;
-      justify-content: center;
-      align-items: center;
-    }
-    .carousel {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      margin: 0 auto 24px auto;
-      width: 90%;
-      max-width: 1200px;
-    }
-    .brand-ticker {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      margin: 0 auto 24px auto;
-      width: 90%;
-      max-width: 1200px;
-    }
-    .brand-track {
-      display: flex;
-      gap: 48px;
-      justify-content: center;
-      align-items: center;
-    }
+
+    /* Footer */
+    .footer { text-align: center; padding: 24px; border-top: 1px solid rgba(255,255,255,0.1); background: rgba(10,16,32,0.95); }
+    /* Modal Styles - Attractive Modern Look */
     .modal {
       display: none;
       position: fixed;
@@ -175,43 +191,105 @@
       top: 0;
       width: 100vw;
       height: 100vh;
-      background: rgba(34, 42, 94, 0.18);
+      background: rgba(20, 24, 38, 0.55);
+      backdrop-filter: blur(6px);
+      display: flex;
       justify-content: center;
       align-items: center;
+      transition: background 0.3s;
     }
     .modal-content {
-      margin: auto;
+      background: linear-gradient(135deg, #222a3a 70%, #4f6cb7 100%);
+      margin: 0 auto;
+      padding: 36px 32px 28px 32px;
+      border-radius: 22px;
+      max-width: 420px;
+      box-shadow: 0 8px 32px rgba(79,108,183,0.25), 0 2px 8px rgba(0,0,0,0.18);
+      color: #fff;
+      position: relative;
+      animation: modalPop 0.35s cubic-bezier(.68,-0.55,.27,1.55);
     }
-    .footer {
-      text-align: center;
-      margin-top: 48px;
+    @keyframes modalPop {
+      0% { transform: scale(0.7) translateY(40px); opacity: 0; }
+      100% { transform: scale(1) translateY(0); opacity: 1; }
     }
-    @media (max-width: 900px) {
-      .container { padding: 0 8px; }
-      .carousel, .brand-ticker { max-width: 100%; }
-      .hero3.card { flex-direction: column; }
-      .slots { flex-direction: column; gap: 8px; }
-      .navbar { flex-direction: column; gap: 12px; }
-      .nav-links { gap: 16px; }
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 18px;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+      padding-bottom: 8px;
     }
-    @media (max-width: 600px) {
-      .hero-tagline h1 { font-size: 2rem; }
-      .carousel-track img { height: 48px; margin: 0 12px; }
-      .brand { font-size: 1rem; padding: 0 8px; }
-      .modal-content { padding: 16px; }
-      .card { padding: 12px; }
+    .modal-header h3 {
+      margin: 0;
+      font-size: 1.35rem;
+      font-weight: 700;
+      letter-spacing: 1px;
+      color: #e67e22;
+      text-shadow: 0 1px 8px rgba(79,108,183,0.18);
+    }
+    .close {
+      background: none;
+      border: none;
+      font-size: 1.7rem;
+      color: #fff;
+      cursor: pointer;
+      transition: color 0.2s;
+    }
+    .close:hover {
+      color: #e67e22;
+      text-shadow: 0 0 8px #e67e22;
+    }
+    .modal-body {
+      margin-top: 10px;
+    }
+    .modal-body .grid {
+      gap: 16px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+    }
+    .modal-body label {
+      font-size: 0.98rem;
+      color: #e3e7ee;
+      margin-bottom: 4px;
+      display: block;
+    }
+    .modal-body .input {
+      width: 100%;
+      padding: 8px 10px;
+      border-radius: 8px;
+      border: 1px solid #4f6cb7;
+      background: #1a2238;
+      color: #fff;
+      font-size: 1rem;
+      margin-bottom: 8px;
+      transition: border 0.2s;
+    }
+    .modal-body .input:focus {
+      border: 1.5px solid #e67e22;
+      outline: none;
+      background: #222a3a;
+    }
+    .mt-4 {
+      margin-top: 18px;
+      display: flex;
+      gap: 12px;
+      justify-content: flex-end;
     }
   </style>
 </head>
 <body>
+  <!-- Floating bg shapes -->
   <div class="float-shape float1"></div>
   <div class="float-shape float2"></div>
   <div class="float-shape float3"></div>
   <div class="float-shape float4"></div>
   <div class="float-shape float5"></div>
+
   <!-- Navbar -->
   <nav class="navbar">
-    <div class="logo"><span>🎇</span> <span class="brand">Taheri Fireworks</span></div>
+    <div class="logo">🎇 Taheri Fireworks</div>
     <ul class="nav-links">
       <li><a href="index.html">Home</a></li>
       <li><a href="create-bill.html">Create Bill</a></li>
@@ -219,6 +297,7 @@
       <li><a href="stock.html">Stock</a></li>
       <li><a href="#contact">Contact</a></li>
     </ul>
+    
     <div class="actions">
       <button class="btn" onclick="openAddProductModal()">+ Add Product</button>
       <a class="btn primary" href="create-bill.html">New Invoice</a>
@@ -227,170 +306,153 @@
 
   <!-- Hero -->
   <header class="hero">
-
-<style>
-
-
-    .carousel {
-      overflow: hidden;
-      position: relative;
-      width: 90%;
-      max-width: 1200px;
-      height: 120px;
-      display: flex;
-      align-items: center;
-    }
-
-    .carousel-track {
-      display: flex;
-      width: max-content;
-      animation: scroll 20s linear infinite;
-    }
-
-    .carousel-track img {
-      height: 100px;
-      margin: 0 40px;
-      object-fit: contain;
-      filter: grayscale(100%); /* makes logos look uniform */
-      transition: filter 0.3s ease;
-    }
-
-    .carousel-track img:hover {
-      filter: grayscale(0%);
-    }
-
-    @keyframes scroll {
-      from {
-        transform: translateX(0);
-      }
-      to {
-        transform: translateX(-50%);
-      }
-    }
-  </style>
-
-
-
-
-    <div class="container">
-      <div class="hero-card">
-        <div class="hero-tagline">
-          <div class="kicker">Taheri Fireworks</div>
-          <h1>Light Up Every Celebration</h1>
-          <p>Premium fireworks • Seamless billing • Fast checkout</p>
-          <button class="cta-btn" onclick="window.location.href='create-bill.html'">Shop Now</button>
-        </div>
-      </div>
-      <section class="highlights">
-        <div class="highlight-card">
-          <span style="font-size:2.2rem;">🎆</span><br>
-          Wide Range of Premium Fireworks
-        </div>
-        <div class="highlight-card">
-          <span style="font-size:2.2rem;">⚡</span><br>
-          Fast & Easy Billing Experience
-        </div>
-        <div class="highlight-card">
-          <span style="font-size:2.2rem;">💸</span><br>
-          Best Prices & Exclusive Offers
-        </div>
-        <div class="highlight-card">
-          <span style="font-size:2.2rem;">🛡️</span><br>
-          Trusted by 1000+ Happy Customers
-        </div>
-      </section>
-      <section class="hero3 card">
-        <div class="slots">
-          <div class="slot left"><img id="hero-img-left" src="https://images.unsplash.com/photo-1430417934865-589b63ad5c00?q=80&w=1400&auto=format&fit=crop" alt="Fireworks" /></div>
-          <div class="slot center"><img id="hero-img-center" src="https://images.unsplash.com/photo-1430931071372-38127bd472b8?q=80&w=1400&auto=format&fit=crop" alt="Fireworks" /></div>
-          <div class="slot right"><img id="hero-img-right" src="https://images.unsplash.com/photo-1540151812223-c30b3fab58e2?q=80&w=1400&auto=format&fit=crop" alt="Fireworks" /></div>
-        </div>
-      </section>
-
-<div class="carousel">
-    <div class="carousel-track">
-      <!-- Logos (repeat for infinite loop effect) -->
-      <img src="https://share.google/images/vqSPuSyFA2NETmtKJ" alt="Anil ">
-      <img src="https://upload.wikimedia.org/wikipedia/commons/a/a9/Amazon_logo.svg" alt="Amazon">
-      <img src="https://upload.wikimedia.org/wikipedia/commons/4/44/Microsoft_logo.svg" alt="Microsoft">
-      <img src="https://upload.wikimedia.org/wikipedia/commons/5/51/Facebook_f_logo_%282019%29.svg" alt="Facebook">
-      <img src="https://upload.wikimedia.org/wikipedia/commons/2/2f/Google_2015_logo.svg" alt="Google">
-      <img src="https://upload.wikimedia.org/wikipedia/commons/f/fa/Apple_logo_black.svg" alt="Apple">
-
-      <!-- Repeat same logos for infinite effect -->
-      <img src="https://upload.wikimedia.org/wikipedia/commons/0/08/Netflix_2015_logo.svg" alt="Netflix">
-      <img src="https://upload.wikimedia.org/wikipedia/commons/a/a9/Amazon_logo.svg" alt="Amazon">
-      <img src="https://upload.wikimedia.org/wikipedia/commons/4/44/Microsoft_logo.svg" alt="Microsoft">
-      <img src="https://upload.wikimedia.org/wikipedia/commons/5/51/Facebook_f_logo_%282019%29.svg" alt="Facebook">
-      <img src="https://upload.wikimedia.org/wikipedia/commons/2/2f/Google_2015_logo.svg" alt="Google">
-      <img src="https://upload.wikimedia.org/wikipedia/commons/f/fa/Apple_logo_black.svg" alt="Apple">
-    </div>
-  </div>
-
-
-      <div class="brand-ticker mt-3">
-        <div class="brand-track" id="brandTrack">
-          <div class="brand">ANIL</div>
-          <div class="brand">RATAN</div>
-          <div class="brand">VASANTHA</div>
-          <div class="brand">MOORTHY</div>
-          <div class="brand">ANIL</div>
-          <div class="brand">RATAN</div>
-          <div class="brand">VASANTHA</div>
-          <div class="brand">MOORTHY</div>
-        </div>
+    <div class="hero-card">
+      <div class="hero-tagline">
+        <div class="kicker">Taheri Fireworks</div>
+        <h1>Light Up Every Celebration</h1>
+        <p>Premium fireworks • Seamless billing • Fast checkout</p>
+        <button class="cta-btn" onclick="window.location.href='create-bill.html'">Shop Now</button>
       </div>
     </div>
   </header>
 
-  <main class="container section">
-    <!-- Map -->
-    <section id="contact" class="section">
-      <h2>📍 Visit Us</h2>
-      <div class="card"><div class="card-body">
-        <!-- TODO: Replace the embed src with your exact location later -->
-        <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3..." width="100%" height="300" style="border:0;" allowfullscreen=""></iframe>
-      </div></div>
-    </section>
+  <!-- Carousel with Anil Fireworks center logo -->
+  <section class="carousel-wrapper">
+    <!-- Moving Products -->
+    <div class="carousel-track">
+      <img src="uploads/Anil1.png" alt="Product 1">
+      <img src="uploads/Anil2.png" alt="Product 2">
+      <img src="uploads/Anil3.png" alt="Product 3">
+      <img src="uploads/Anil4.png" alt="Product 4">
+      <img src="uploads/Anil5.png" alt="Product 5">
+      <img src="uploads/Anil6.png" alt="Product 6">
+      <!-- Repeat many times for seamless loop -->
+      <img src="uploads/Anil1.png" alt="Product 1">
+      <img src="uploads/Anil2.png" alt="Product 2">
+      <img src="uploads/Anil3.png" alt="Product 3">
+      <img src="uploads/Anil4.png" alt="Product 4">
+      <img src="uploads/Anil5.png" alt="Product 5">
+      <img src="uploads/Anil6.png" alt="Product 6">
+
+      <img src="uploads/Anil1.png" alt="Product 1">
+      <img src="uploads/Anil2.png" alt="Product 2">
+      <img src="uploads/Anil3.png" alt="Product 3">
+      <img src="uploads/Anil4.png" alt="Product 4">
+      <img src="uploads/Anil5.png" alt="Product 5">
+      <img src="uploads/Anil6.png" alt="Product 6">
+
+      <img src="uploads/Anil1.png" alt="Product 1">
+      <img src="uploads/Anil2.png" alt="Product 2">
+      <img src="uploads/Anil3.png" alt="Product 3">
+      <img src="uploads/Anil4.png" alt="Product 4">
+      <img src="uploads/Anil5.png" alt="Product 5">
+      <img src="uploads/Anil6.png" alt="Product 6">
+
+      <img src="uploads/Anil1.png" alt="Product 1">
+      <img src="uploads/Anil2.png" alt="Product 2">
+      <img src="uploads/Anil3.png" alt="Product 3">
+      <img src="uploads/Anil4.png" alt="Product 4">
+      <img src="uploads/Anil5.png" alt="Product 5">
+      <img src="uploads/Anil6.png" alt="Product 6">
+
+      <img src="uploads/Anil1.png" alt="Product 1">
+      <img src="uploads/Anil2.png" alt="Product 2">
+      <img src="uploads/Anil3.png" alt="Product 3">
+      <img src="uploads/Anil4.png" alt="Product 4">
+      <img src="uploads/Anil5.png" alt="Product 5">
+      <img src="uploads/Anil6.png" alt="Product 6">
+
+      <img src="uploads/Anil1.png" alt="Product 1">
+      <img src="uploads/Anil2.png" alt="Product 2">
+      <img src="uploads/Anil3.png" alt="Product 3">
+      <img src="uploads/Anil4.png" alt="Product 4">
+      <img src="uploads/Anil5.png" alt="Product 5">
+      <img src="uploads/Anil6.png" alt="Product 6">
+
+      <img src="uploads/Anil1.png" alt="Product 1">
+      <img src="uploads/Anil2.png" alt="Product 2">
+      <img src="uploads/Anil3.png" alt="Product 3">
+      <img src="uploads/Anil4.png" alt="Product 4">
+      <img src="uploads/Anil5.png" alt="Product 5">
+      <img src="uploads/Anil6.png" alt="Product 6">
+
+      <img src="uploads/Anil1.png" alt="Product 1">
+      <img src="uploads/Anil2.png" alt="Product 2">
+      <img src="uploads/Anil3.png" alt="Product 3">
+      <img src="uploads/Anil4.png" alt="Product 4">
+      <img src="uploads/Anil5.png" alt="Product 5">
+      <img src="uploads/Anil6.png" alt="Product 6">
+
+      <img src="uploads/Anil1.png" alt="Product 1">
+      <img src="uploads/Anil2.png" alt="Product 2">
+      <img src="uploads/Anil3.png" alt="Product 3">
+      <img src="uploads/Anil4.png" alt="Product 4">
+      <img src="uploads/Anil5.png" alt="Product 5">
+      <img src="uploads/Anil6.png" alt="Product 6">
+    </div>
+
+    <!-- Fixed Center Logo -->
+    <div class="center-logo">
+      <img src="uploads/AnilLogo.png" alt="Anil Fireworks Logo">
+    </div>
+  </section>
+
+ <!-- Highlights -->
+ <section class="highlights">
+  <div class="highlight-card">🎆<br>Wide Range of Premium Fireworks</div>
+  <div class="highlight-card">⚡<br>Fast & Easy Billing Experience</div>
+  <div class="highlight-card">💸<br>Best Prices & Exclusive Offers</div>
+  <div class="highlight-card">🛡️<br>Trusted by 1000+ Customers</div>
+</section>
+
+  <!-- Contact -->
+  <main class="container section" id="contact">
+    <h2>📍 Visit Us</h2>
+    <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3672.94686318964!2d76.02011807554256!3d22.98898137919732!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x396317006708151f%3A0x410eac66ae9b3f02!2sTaheri%20fire%20works!5e0!3m2!1sen!2sin!4v1756550651759!5m2!1sen!2sin" width="100%" height="300" style="border:0;" allowfullscreen></iframe>
   </main>
 
-  <!-- Add Product Modal -->
-  <div id="productModal" class="modal">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h3>Add New Product</h3>
-        <button class="close" onclick="closeAddProductModal()">×</button>
+
+
+ <div id="productModal" class="modal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3>Add New Product</h3>
+      <button class="close" onclick="closeAddProductModal()">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="grid cols-2">
+        <div>
+          <label class="label">Code</label>
+          <input class="input" type="text" id="prodCode" placeholder="e.g. TF1001">
+        </div>
+        <div>
+          <label class="label">Name</label>
+          <input class="input" type="text" id="prodName" placeholder="Product name">
+        </div>
+        <div>
+          <label class="label">Price</label>
+          <input class="input" type="number" id="prodPrice" placeholder="0">
+        </div>
+        <div>
+          <label class="label">Stock</label>
+          <input class="input" type="number" id="prodStock" placeholder="0">
+        </div>
       </div>
-      <div class="modal-body">
-        <div class="grid cols-2">
-          <div>
-            <label class="label">Code</label>
-            <input class="input" type="text" id="prodCode" placeholder="e.g. TF1001">
-          </div>
-          <div>
-            <label class="label">Name</label>
-            <input class="input" type="text" id="prodName" placeholder="Product name">
-          </div>
-          <div>
-            <label class="label">Price</label>
-            <input class="input" type="number" id="prodPrice" placeholder="0">
-          </div>
-          <div>
-            <label class="label">Stock</label>
-            <input class="input" type="number" id="prodStock" placeholder="0">
-          </div>
-        </div>
-        <div class="mt-4">
-          <button class="btn primary" onclick="saveProduct()">Save Product</button>
-          <button class="btn" onclick="closeAddProductModal()">Cancel</button>
-        </div>
+      <div class="mt-4">
+        <button class="btn primary" onclick="saveProduct()">Save Product</button>
+        <button class="btn" onclick="closeAddProductModal()">Cancel</button>
       </div>
     </div>
   </div>
+</div>
 
+
+
+
+  <!-- Footer -->
   <footer class="footer">© Taheri Fireworks</footer>
 
-  <script src="assets/config.js"></script>
-  <script src="assets/script.js"></script>
+<script src="assets/config.js"></script>
+<script src="assets/script.js"></script>
 </body>
 </html>

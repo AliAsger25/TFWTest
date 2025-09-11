@@ -5,52 +5,176 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Bills - Taheri Fireworks</title>
   <link rel="stylesheet" href="assets/style.css">
-  <style>
-    body {
-      background: linear-gradient(120deg, #f8fafc 60%, #e3e7ee 100%) !important;
-      margin: 0;
-    }
-  </style>
-  <!-- jsPDF for downloading invoices from list page as well -->
+
+  <!-- jsPDF for downloading invoices -->
   <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
   <script src="assets/config.js"></script>
+
+  <style>
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: radial-gradient(circle at top left, #1a2240, #0c1222 70%);
+  background-attachment: fixed;
+  background-size: cover;
+  color: var(--text);
+  font-family: 'Inter', sans-serif;
+  overflow-x: hidden;
+  position: relative;
+}
+
+
+    /* Navbar */
+    .navbar {
+      width: 100%;
+      padding: 16px 32px;
+      background: rgba(10,16,32,0.95);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+    .navbar .logo { font-size: 1.5rem; font-weight: bold; }
+    .nav-links { list-style: none; display: flex; gap: 24px; }
+    .nav-links a { text-decoration: none; color: #fff; font-weight: 500; transition: all 0.3s ease; }
+    .nav-links a:hover { color: #e67e22; transform: scale(1.1); }
+
+    .actions { display: flex; gap: 12px; }
+    .btn {
+      padding: 8px 18px;
+      border-radius: 20px;
+      border: 1px solid rgba(255,255,255,0.2);
+      background: transparent;
+      color: #fff;
+      cursor: pointer;
+      font-weight: 600;
+      transition: all 0.3s ease;
+    }
+    .btn:hover { transform: scale(1.1); background: rgba(255,255,255,0.1); }
+    .btn.primary { background: linear-gradient(90deg,#e67e22,#4f6cb7); border: none; }
+    .btn.primary:hover { box-shadow: 0 0 15px rgba(230,126,34,0.7); }
+
+
+    /* Extra tweaks for Bills page */
+    h2 {
+      font-size: 2rem;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 12px;
+    }
+
+    /* Bills Search Input */
+    .input {
+      padding: 10px 14px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      background: #0f1630;
+      color: var(--text);
+      font-size: 0.95rem;
+      transition: 0.2s;
+    }
+    .input:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 2px rgba(108,92,231,0.35);
+    }
+
+    /* Card override */
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+    .card-body { padding: 24px; }
+
+    /* Table override for dark theme */
+    .table {
+      width: 100%;
+      border-collapse: collapse;
+      background: rgba(255,255,255,0.02);
+      border-radius: 12px;
+      overflow: hidden;
+    }
+    .table th, .table td {
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--border);
+      font-size: 0.95rem;
+      color: var(--text);
+    }
+    .table thead th {
+      background: rgba(255,255,255,0.05);
+      font-weight: 700;
+    }
+    .table tbody tr:hover {
+      background: rgba(255,255,255,0.05);
+    }
+  </style>
 </head>
 <body>
+  <!-- Floating bg shapes (same as landing) -->
+  <div class="float-shape float1"></div>
+  <div class="float-shape float2"></div>
+  <div class="float-shape float3"></div>
+  <div class="float-shape float4"></div>
+  <div class="float-shape float5"></div>
+
+  <!-- Navbar -->
   <nav class="navbar">
-    <div class="logo"><span>🎇</span> <span class="brand">Taheri Fireworks</span></div>
+    <div class="logo">🎇 Taheri Fireworks</div>
     <ul class="nav-links">
       <li><a href="index.html">Home</a></li>
       <li><a href="create-bill.html">Create Bill</a></li>
       <li><a href="bills.html">Bills</a></li>
       <li><a href="stock.html">Stock</a></li>
+      <li><a href="#contact">Contact</a></li>
     </ul>
     <div class="actions">
+      <button class="btn" onclick="openAddProductModal()">+ Add Product</button>
       <a class="btn primary" href="create-bill.html">New Invoice</a>
     </div>
   </nav>
 
+
+  <!-- Main -->
   <main class="container section">
-    <div class="flex items-center justify-between">
+    <div class="flex justify-between items-center mb-4">
       <h2>All Bills</h2>
-      <input class="input" style="max-width:280px" id="billsSearch" placeholder="Search by invoice, name or phone" oninput="filterBills()" />
+      <input 
+        class="input" 
+        style="max-width:280px" 
+        id="billsSearch" 
+        placeholder="Search by invoice, name or phone" 
+        oninput="filterBills()" 
+      />
     </div>
 
-    <div class="card mt-3"><div class="card-body">
-      <table id="billsTable" class="table">
-        <thead>
-          <tr>
-            <th>Invoice</th>
-            <th>Date</th>
-            <th>Customer</th>
-            <th>Phone</th>
-            <th>Total</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody></tbody>
-      </table>
-    </div></div>
+    <div class="card">
+      <div class="card-body">
+        <table id="billsTable" class="table">
+          <thead>
+            <tr>
+              <th>Invoice</th>
+              <th>Date</th>
+              <th>Customer</th>
+              <th>Phone</th>
+              <th>Total</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
   </main>
+
+  <!-- Footer -->
+  <footer class="footer">© Taheri Fireworks</footer>
 
   <script src="assets/script.js"></script>
   <script>
@@ -60,4 +184,3 @@
   </script>
 </body>
 </html>
-

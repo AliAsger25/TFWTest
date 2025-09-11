@@ -8,6 +8,56 @@
   <!-- jsPDF for invoice PDF generation -->
   <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
   <script src="assets/config.js"></script>
+
+  <style>
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: radial-gradient(circle at top left, #1a2240, #0c1222 70%);
+      background-attachment: fixed;
+      background-size: cover;
+      color: var(--text);
+      font-family: 'Inter', sans-serif;
+      overflow-x: hidden;
+      position: relative;
+    }
+    
+    
+        /* Navbar */
+        .navbar {
+          width: 100%;
+          padding: 16px 32px;
+          background: rgba(10,16,32,0.95);
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          border-bottom: 1px solid rgba(255,255,255,0.08);
+          position: sticky;
+          top: 0;
+          z-index: 10;
+        }
+        .navbar .logo { font-size: 1.5rem; font-weight: bold; }
+        .nav-links { list-style: none; display: flex; gap: 24px; }
+        .nav-links a { text-decoration: none; color: #fff; font-weight: 500; transition: all 0.3s ease; }
+        .nav-links a:hover { color: #e67e22; transform: scale(1.1); }
+    
+        .actions { display: flex; gap: 12px; }
+        .btn {
+          padding: 8px 18px;
+          border-radius: 20px;
+          border: 1px solid rgba(255,255,255,0.2);
+          background: transparent;
+          color: #fff;
+          cursor: pointer;
+          font-weight: 600;
+          transition: all 0.3s ease;
+        }
+        .btn:hover { transform: scale(1.1); background: rgba(255,255,255,0.1); }
+        .btn.primary { background: linear-gradient(90deg,#e67e22,#4f6cb7); border: none; }
+        .btn.primary:hover { box-shadow: 0 0 15px rgba(230,126,34,0.7); }
+        </style>
+
 </head>
 <body>
   <!-- Navbar -->
@@ -56,9 +106,12 @@
             <label class="label">Quantity</label>
             <input class="input" type="number" id="qty" min="1" value="1">
           </div>
-          <div class="mt-4">
+          <div>
+            <!-- Spacer label to match the other columns' label height -->
+            <label class="label" style="visibility:hidden">Add</label>
             <button class="btn primary" onclick="addToBill()">Add</button>
           </div>
+          
         </div>
         <p class="small mt-2">Tip: Use product codes for quick entry. Stock is validated on save.</p>
       </div></div>
@@ -95,7 +148,7 @@
       </div>
 
       <div class="mt-4 flex items-center justify-between">
-        <div class="small">Invoice will auto-download as PDF and SMS will be sent to the customer after saving.</div>
+        <div class="small"></div>
         <div>
           <button class="btn" onclick="window.location.href='index.html'">Cancel</button>
           <button class="btn primary" onclick="saveBill()">Save & Download</button>

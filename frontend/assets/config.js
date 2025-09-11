@@ -2,12 +2,11 @@
 window.FIRM = {
   name: "Taheri Fireworks",
   addressLines: [
-    "Shop 12, Main Market Road",
-    "Your City - 400001"
+    "83 N.G, P Coloney, Nagukhedi",
+    "Dewas, Madhya Pradesh 455001"
   ],
-  phone: "+91XXXXXXXXXX",
+  phone: "+919039767009",
   email: "info@taherifireworks.example",
-  gstin: "GSTIN-XXXXXXXXXXXXXX", // optional
   // Optional logo to embed in PDF header (place a file at frontend/assets/logo.png)
   logoSrc: "assets/logo.png"
 };

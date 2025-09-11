@@ -5,37 +5,163 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Stock - Taheri Fireworks</title>
   <link rel="stylesheet" href="assets/style.css">
+  <style>
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: radial-gradient(circle at top left, #1a2240, #0c1222 70%);
+      background-attachment: fixed;
+      background-size: cover;
+      color: var(--text);
+      font-family: 'Inter', sans-serif;
+      overflow-x: hidden;
+      position: relative;
+    }
+ 
+    /* Stock Table adjustments */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      table-layout: fixed; /* prevent uneven expansion */
+    }
+    th, td {
+      padding: 12px 16px;
+      text-align: left;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+      word-wrap: break-word;
+    }
+    th {
+      color: #fff;
+      font-weight: 600;
+    }
+    td {
+      color: #e6e9f2;
+      font-size: 0.95rem;
+    }
+
+    /* Ensure Actions column has enough space */
+    th.actions-header, td.actions-cell {
+      width: 160px; /* 👈 enough room for buttons */
+      text-align: center;
+    }
+
+    td.actions-cell {
+      display: flex;
+      justify-content: center;
+      gap: 8px;
+      align-items: center;
+      white-space: nowrap;
+    }
+    td.actions-cell .btn {
+      padding: 6px 12px;
+      font-size: 0.8rem;
+      border-radius: 8px;
+      flex-shrink: 0;
+      text-align: center;
+    }
+
+    /* Responsive fix */
+    @media (max-width: 700px) {
+      td.actions-cell {
+        flex-direction: column;
+        gap: 6px;
+      }
+      th.actions-header, td.actions-cell {
+        width: auto;
+      }
+      td.actions-cell .btn {
+        width: 100%;
+      }
+    }
+  </style>
 </head>
 <body>
+  <!-- Navbar -->
   <nav class="navbar">
-    <div class="logo"><span>🎇</span> <span class="brand">Taheri Fireworks</span></div>
+    <div class="logo">🎇 Taheri Fireworks</div>
     <ul class="nav-links">
       <li><a href="index.html">Home</a></li>
       <li><a href="create-bill.html">Create Bill</a></li>
       <li><a href="bills.html">Bills</a></li>
       <li><a href="stock.html">Stock</a></li>
+      <li><a href="#contact">Contact</a></li>
     </ul>
+    <div class="actions">
+      <button class="btn" onclick="openAddProductModal()">+ Add Product</button>
+      <a class="btn primary" href="create-bill.html">New Invoice</a>
+    </div>
   </nav>
 
   <main class="container section">
     <h2>Stock</h2>
-    <div class="card mt-3"><div class="card-body">
-      <table id="stockTable" class="table">
-        <thead>
-          <tr>
-            <th>Code</th>
-            <th>Name</th>
-            <th>Price</th>
-            <th>Stock</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody></tbody>
-      </table>
-    </div></div>
+    <div class="card mt-3">
+      <div class="card-body">
+        <table id="stockTable" class="table">
+          <thead>
+            <tr>
+              <th>Code</th>
+              <th>Name</th>
+              <th>Price</th>
+              <th>Stock</th>
+              <th class="actions-header">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <!-- Example row (JS will generate these dynamically) -->
+            <tr>
+              <td>1</td>
+              <td>Sparklers 9cm</td>
+              <td><input type="text" value="55"></td>
+              <td><input type="text" value="490"></td>
+              <td class="actions-cell">
+                <button class="btn">Save</button>
+                <button class="btn danger">Delete</button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
   </main>
 
-  <script src="assets/script.js"></script>
+
+ <!-- Add Product Modal -->
+ <div id="productModal" class="modal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3>Add New Product</h3>
+      <button class="close" onclick="closeAddProductModal()">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="grid cols-2">
+        <div>
+          <label class="label">Code</label>
+          <input class="input" type="text" id="prodCode" placeholder="e.g. TF1001">
+        </div>
+        <div>
+          <label class="label">Name</label>
+          <input class="input" type="text" id="prodName" placeholder="Product name">
+        </div>
+        <div>
+          <label class="label">Price</label>
+          <input class="input" type="number" id="prodPrice" placeholder="0">
+        </div>
+        <div>
+          <label class="label">Stock</label>
+          <input class="input" type="number" id="prodStock" placeholder="0">
+        </div>
+      </div>
+      <div class="mt-4">
+        <button class="btn primary" onclick="saveProduct()">Save Product</button>
+        <button class="btn" onclick="closeAddProductModal()">Cancel</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<script src="assets/config.js"></script>
+<script src="assets/script.js"></script>
   <script>
     document.addEventListener('DOMContentLoaded', () => {
       if (typeof loadStock === 'function') loadStock();
