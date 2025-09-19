@@ -10,7 +10,6 @@
   <script src="assets/config.js"></script>
 
   <style>
-
     body {
       margin: 0;
       min-height: 100vh;
@@ -22,42 +21,46 @@
       overflow-x: hidden;
       position: relative;
     }
-    
-    
-        /* Navbar */
-        .navbar {
-          width: 100%;
-          padding: 16px 32px;
-          background: rgba(10,16,32,0.95);
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          border-bottom: 1px solid rgba(255,255,255,0.08);
-          position: sticky;
-          top: 0;
-          z-index: 10;
-        }
-        .navbar .logo { font-size: 1.5rem; font-weight: bold; }
-        .nav-links { list-style: none; display: flex; gap: 24px; }
-        .nav-links a { text-decoration: none; color: #fff; font-weight: 500; transition: all 0.3s ease; }
-        .nav-links a:hover { color: #e67e22; transform: scale(1.1); }
-    
-        .actions { display: flex; gap: 12px; }
-        .btn {
-          padding: 8px 18px;
-          border-radius: 20px;
-          border: 1px solid rgba(255,255,255,0.2);
-          background: transparent;
-          color: #fff;
-          cursor: pointer;
-          font-weight: 600;
-          transition: all 0.3s ease;
-        }
-        .btn:hover { transform: scale(1.1); background: rgba(255,255,255,0.1); }
-        .btn.primary { background: linear-gradient(90deg,#e67e22,#4f6cb7); border: none; }
-        .btn.primary:hover { box-shadow: 0 0 15px rgba(230,126,34,0.7); }
-        </style>
 
+    /* Navbar */
+    .navbar {
+      width: 100%;
+      padding: 16px 32px;
+      background: rgba(10,16,32,0.95);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+    .navbar .logo { font-size: 1.5rem; font-weight: bold; }
+    .nav-links { list-style: none; display: flex; gap: 24px; }
+    .nav-links a { text-decoration: none; color: #fff; font-weight: 500; transition: all 0.3s ease; }
+    .nav-links a:hover { color: #e67e22; transform: scale(1.1); }
+
+    .actions { display: flex; gap: 12px; }
+    .btn {
+      padding: 8px 18px;
+      border-radius: 20px;
+      border: 1px solid rgba(255,255,255,0.2);
+      background: transparent;
+      color: #fff;
+      cursor: pointer;
+      font-weight: 600;
+      transition: all 0.3s ease;
+    }
+    .btn:hover { transform: scale(1.1); background: rgba(255,255,255,0.1); }
+    .btn.primary { background: linear-gradient(90deg,#e67e22,#4f6cb7); border: none; }
+    .btn.primary:hover { box-shadow: 0 0 15px rgba(230,126,34,0.7); }
+
+    /* 🔹 Align Serial No center */
+    #billTable th:first-child,
+    #billTable td:first-child {
+      text-align: center;
+    }
+  </style>
 </head>
 <body>
   <!-- Navbar -->
@@ -65,9 +68,11 @@
     <div class="logo"><span>🎇</span> <span class="brand">Taheri Fireworks</span></div>
     <ul class="nav-links">
       <li><a href="index.html">Home</a></li>
-      <li><a href="create-bill.html">Create Bill</a></li>
-      <li><a href="bills.html">Bills</a></li>
+      <li><a href="create-bill.html">Wholesale Bill</a></li>
+      <li><a href="create-bill-retail.html">Reatil Bill</a></li>
+      <li><a href="bills.html">All Bills</a></li>
       <li><a href="stock.html">Stock</a></li>
+      <li><a href="index.html#contact">Contact</a></li>
     </ul>
     <div class="actions">
       <a class="btn" href="bills.html">View Bills</a>
@@ -75,7 +80,7 @@
   </nav>
 
   <main class="container section">
-    <h2>Create Invoice</h2>
+    <h2>Create Wholesale Invoice</h2>
 
     <div class="grid cols-2">
       <div class="card"><div class="card-body">
@@ -111,7 +116,6 @@
             <label class="label" style="visibility:hidden">Add</label>
             <button class="btn primary" onclick="addToBill()">Add</button>
           </div>
-          
         </div>
         <p class="small mt-2">Tip: Use product codes for quick entry. Stock is validated on save.</p>
       </div></div>
@@ -121,9 +125,12 @@
       <div class="flex items-center justify-between">
         <h3>Items</h3>
       </div>
+
+      <!-- 🔹 Table with Serial Number Column -->
       <table id="billTable" class="table mt-2">
         <thead>
           <tr>
+            <th style="width:6%">S.No</th>  <!-- new column -->
             <th style="width:12%">Code</th>
             <th>Item</th>
             <th style="width:14%">Qty</th>

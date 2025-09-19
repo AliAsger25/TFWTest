@@ -1,4 +1,5 @@
-const API_BASE = `http://localhost:3000/api`;
+// Use relative path for API when deployed (works on Render)
+const API_BASE = `/api`;
 
 // ---------- Helpers ----------
 function qs(id) { return document.getElementById(id); }
@@ -19,6 +20,7 @@ async function saveProduct() {
     code: qs("prodCode")?.value?.trim(),
     name: qs("prodName")?.value?.trim(),
     price: parseFloat(qs("prodPrice")?.value || 0),
+    retailPrice: parseFloat(qs("prodRetailPrice")?.value || 0),
     stock: parseInt(qs("prodStock")?.value || 0, 10)
   };
 
@@ -89,6 +91,211 @@ async function addToBill() {
 }
 expose('addToBill', addToBill);
 
+
+
+
+
+
+
+// ---------- Retail Bill State ----------
+let billRetailItems = [];        // All retail bill items live here
+let retailBillDiscount = 0;      // Discount entered by user
+
+
+// ====================================================================
+// 1️⃣ addToRetailBill()
+// Called when user enters a product code + quantity and clicks "Add"
+// ====================================================================
+async function addToRetailBill() {
+  // Grab product code & quantity from inputs
+  let code = qs("productCode")?.value?.trim();
+  const qty = parseInt(qs("qty")?.value || 1, 10);
+
+  if (!code) return alert("Enter product code or name");
+  if (qty <= 0) return alert("Quantity must be at least 1");
+
+  // 🔹 Try to fetch exact product by code
+  let product = null;
+  let res = await fetch(`${API_BASE}/products/${encodeURIComponent(code)}`);
+  if (res.ok) {
+    product = await res.json();
+  } else {
+    // 🔹 Fallback: search by query if code not found
+    const s = await fetch(`${API_BASE}/products/search/q?q=${encodeURIComponent(code)}`);
+    if (s.ok) {
+      const options = await s.json();
+      if (options.length) product = options[0];
+    }
+  }
+
+  if (!product) return alert("Product not found");
+
+  // 🔹 Add or update existing item
+  //    We ALWAYS store the price we want to use (retail price) in `price`
+  const existing = billRetailItems.find(i => i.code === product.code);
+  if (existing) {
+    // If already in list, just update quantity & total
+    existing.qty += qty;
+    existing.total = existing.qty * existing.price;    // ✅ use existing.price
+  } else {
+    // New entry in bill
+    billRetailItems.push({
+      code: product.code,
+      name: product.name,
+      qty,
+      // ✅ Use the product's RETAIL price, store it as `price`
+      price: product.retailPrice,
+      total: product.retailPrice * qty
+    });
+  }
+
+  // Re-render table
+  renderRetailBillTable();
+
+  // Clear input fields for next entry
+  if (qs("productCode")) qs("productCode").value = "";
+  if (qs("qty")) qs("qty").value = 1;
+}
+expose('addToRetailBill', addToRetailBill);
+
+
+
+// ====================================================================
+// 2️⃣ renderRetailBillTable()
+// Rebuilds the <tbody> of the retail bill table every time
+// ====================================================================
+function renderRetailBillTable() {
+  const tbody = document.querySelector('#billTable tbody');
+  if (!tbody) return;
+
+  // Sort items by code for display
+  billRetailItems.sort((a, b) => a.code.localeCompare(b.code));
+
+  // Render rows with serial numbers
+  tbody.innerHTML = billRetailItems.map((item, i) => `
+    <tr>
+      <td>${i + 1}</td> <!-- Serial number -->
+      <td>${item.code}</td>
+      <td>${item.name}</td>
+      <td>
+        <input class="input" type="number" min="1" value="${item.qty}" style="width:80px"
+          onchange="updateRetailItemQty('${item.code}', this.value)" />
+      </td>
+      <td class="text-right">₹${fmtMoney(item.price)}</td>       <!-- ✅ Retail price -->
+      <td class="text-right">₹${fmtMoney(item.total)}</td>
+      <td>
+        <button class="btn danger" onclick="removeRetailItem('${item.code}')">
+          Remove
+        </button>
+      </td>
+    </tr>
+  `).join("");
+
+  // Compute subtotal
+  const subtotal = billRetailItems.reduce((sum, i) => sum + i.total, 0);
+  const subtotalEl = qs("subtotal");
+  const discountInput = qs("discount");
+
+  // Capture discount if input exists
+  if (discountInput) retailBillDiscount = parseFloat(discountInput.value || 0);
+  if (subtotalEl) subtotalEl.textContent = `₹${fmtMoney(subtotal)}`;
+
+  // Compute grand total
+  const grand = Math.max(0, subtotal - (retailBillDiscount || 0));
+  const gtEl = qs("grandTotal");
+  if (gtEl) gtEl.textContent = fmtMoney(grand);
+}
+
+
+
+
+// ====================================================================
+// 3️⃣ saveRetailBill()
+// Called when user clicks "Save Bill" button on the retail bill page
+// ====================================================================
+async function saveRetailBill() {
+  // Grab discount input if present
+  const discountInput = qs("discount");
+  retailBillDiscount = parseFloat(discountInput?.value || 0);
+
+  if (!billRetailItems.length) return alert("Add at least one product");
+
+  // 🔹 Compute grand total from our items
+  const grandTotal = billRetailItems.reduce((s, i) => s + i.total, 0) - (retailBillDiscount || 0);
+
+  // Build payload to send to server
+  // We’re explicitly sending item.price (retail) and item.total
+  const payload = {
+    // customerName: "Walk-in",
+    // customerPhone: "",
+    items: billRetailItems
+      .slice()
+      .sort((a, b) =>
+        String(a.code).localeCompare(String(b.code), undefined, { numeric: true, sensitivity: 'base' })
+      ),
+    discount: retailBillDiscount,
+    grandTotal: Math.max(0, grandTotal)
+  };
+
+  // 🔹 POST the bill to API
+  const res = await fetch(`${API_BASE}/bills`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload)
+  });
+
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    return alert("❌ Failed to save bill" + (data.error ? `: ${data.error}` : ""));
+  }
+
+  // Show success
+  alert(`✅ Bill saved! Invoice No: ${data.invoiceNo}`);
+
+  // 🔹 Optionally auto-generate and download invoice PDF
+  try {
+    await generateBillPDF(data);
+  } catch (e) {
+    console.warn('PDF generation failed:', e);
+  }
+
+  // 🔹 Optional: open WhatsApp link if phone present (here blank)
+  try {
+    const cfgRes = await fetch(`${API_BASE}/config`);
+    if (cfgRes.ok) {
+      const cfg = await cfgRes.json();
+      if (!cfg.twilioWhatsappEnabled && data.customerPhone) {
+        const phone = String(data.customerPhone).replace(/\D/g, '');
+        const link = `${window.location.origin}/invoice/${data.invoiceNo}`;
+        const msg = encodeURIComponent(
+          `Thanks for shopping at ${window.FIRM?.name || 'Taheri Fireworks'}! Invoice #${data.invoiceNo}. Amount: ₹${fmtMoney(data.grandTotal)}. View: ${link}`
+        );
+        window.open(`https://wa.me/${phone}?text=${msg}`, '_blank');
+      }
+    }
+  } catch (e) { /* ignore */ }
+
+  // 🔹 Reset state for new bill
+  billRetailItems = [];
+  renderRetailBillTable();
+}
+expose('saveRetailBill', saveRetailBill);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 // Autocomplete search handler
 let __PRODUCT_SUGGEST_TIMER = null;
 let __PRODUCT_CACHE = [];
@@ -135,9 +342,13 @@ function sortBillItems(){
 function renderBillTable() {
   const tbody = document.querySelector('#billTable tbody');
   if (!tbody) return;
+
   sortBillItems();
-  tbody.innerHTML = billItems.map(item => `
+
+  // 🔹 Add index as i, then +1 for serial number
+  tbody.innerHTML = billItems.map((item, i) => `
     <tr>
+      <td>${i + 1}</td> <!-- Serial number -->
       <td>${item.code}</td>
       <td>${item.name}</td>
       <td>
@@ -149,6 +360,7 @@ function renderBillTable() {
     </tr>
   `).join("");
 
+  // 🧮 subtotal & grand total calculation stays same
   const subtotal = billItems.reduce((sum, i) => sum + i.total, 0);
   const subtotalEl = qs("subtotal");
   const discountInput = qs("discount");
@@ -159,6 +371,13 @@ function renderBillTable() {
   const gtEl = qs("grandTotal");
   if (gtEl) gtEl.textContent = fmtMoney(grand);
 }
+
+
+
+
+
+
+
 
 function updateItemQty(code, newQty) {
   newQty = parseInt(newQty, 10);
@@ -232,14 +451,25 @@ const payload = {
 }
 expose('saveBill', saveBill);
 
-// Invoice PDF generation (jsPDF)
-async function generateBillPDF(bill){
+
+
+
+
+
+
+
+
+
+
+
+// ---------- PDF Generation (Create Bill page) ----------
+
+async function generateBillPDF(bill) {
   const jsPDF = window.jspdf?.jsPDF;
   if (!jsPDF) throw new Error('jsPDF not loaded');
   const doc = new jsPDF();
 
-  // Helper to load logo as data URL
-  async function loadImageDataURL(src){
+  async function loadImageDataURL(src) {
     return new Promise((resolve) => {
       if (!src) return resolve(null);
       const img = new Image();
@@ -247,103 +477,240 @@ async function generateBillPDF(bill){
       img.onload = () => {
         try {
           const canvas = document.createElement('canvas');
-          canvas.width = img.naturalWidth; canvas.height = img.naturalHeight;
+          canvas.width = img.naturalWidth;
+          canvas.height = img.naturalHeight;
           const ctx = canvas.getContext('2d');
           ctx.drawImage(img, 0, 0);
           resolve(canvas.toDataURL('image/png'));
-        } catch (e) { resolve(null); }
+        } catch (e) {
+          resolve(null);
+        }
       };
       img.onerror = () => resolve(null);
       img.src = src;
     });
   }
 
-  const lineY = (y) => doc.line(14, y, 196, y);
-  const rightEdge = 196; // right page margin
-  const rightText = (txt, y) => doc.text(String(txt), rightEdge, y, { align: 'right' });
-  const col = (x, txt, y, right=false) => doc.text(String(txt), x, y, right ? { align: 'right' } : undefined);
+  const fmtMoney = (n) =>
+    Number(n || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 });
 
-  // Column positions
-  const X_CODE = 14;
-  const X_NAME = 40;   // wider name column for better alignment
-  const X_QTY = 140;
-  const X_PRICE = 170;
-  const X_AMT = rightEdge;
+  // Page dimensions
+  const pageWidth = doc.internal.pageSize.getWidth();
+  const pageHeight = doc.internal.pageSize.getHeight();
+  const margin = 15;
 
-  // Header with firm details
+  const marginLeft = margin;
+  const marginRight = pageWidth - margin;
+  const tableWidth = marginRight - marginLeft;
+
+  // Column widths
+  const colWidths = [12, 25, 55, 20, 35, 33]; // S.No, Code, Item, Qty, Price, Amount
+  let xPositions = [];
+  let x = marginLeft;
+  for (let w of colWidths) {
+    xPositions.push(x);
+    x += w;
+  }
+
+  const [X_SN, X_CODE, X_NAME, X_QTY, X_PRICE, X_AMT] = xPositions;
+
+  const rightText = (text, y) =>
+    doc.text(text, marginRight, y, { align: 'right' });
+
+  // Outer border
+  doc.setDrawColor(0);
+  doc.setLineWidth(0.3);
+  doc.rect(margin / 2, margin / 2, pageWidth - margin, pageHeight - margin);
+
+  // Logo
   const firm = window.FIRM || {};
   const logoDataUrl = await loadImageDataURL(firm.logoSrc);
-  if (logoDataUrl){
-    try { doc.addImage(logoDataUrl, 'PNG', 14, 10, 24, 24); } catch(e){}
+  if (logoDataUrl) {
+    try {
+      doc.addImage(logoDataUrl, 'PNG', marginLeft, margin, 24, 24);
+    } catch {}
   }
+
+  // Firm name and info
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(18);
-  doc.text(firm.name || 'Taheri Fireworks', 105, 14, { align: 'center' });
-  doc.setFontSize(10);
-  doc.setFont('helvetica', 'normal');
-  const addr = (firm.addressLines || []).join(', ');
-  if (addr) doc.text(addr, 105, 20, { align: 'center' });
-  const contactLine = [firm.phone, firm.email].filter(Boolean).join(' • ');
-  if (contactLine) doc.text(contactLine, 105, 26, { align: 'center' });
-  if (firm.gstin) doc.text(`GSTIN: ${firm.gstin}`, 105, 32, { align: 'center' });
-  lineY(36);
-
-  // Invoice meta
-  doc.setFontSize(11);
-  doc.text(`Invoice #: ${bill.invoiceNo}`, 14, 44);
-  rightText(`Date: ${new Date(bill.date || Date.now()).toLocaleDateString()}`, 44);
-  doc.text(`Customer: ${bill.customerName || 'Walk-in'}`, 14, 50);
-  doc.text(`Phone: ${bill.customerPhone || '-'}`, 14, 56);
-
-  // Table header
-  lineY(60);
-  doc.setFont('helvetica', 'bold');
-  doc.text('Code', X_CODE, 66);
-  doc.text('Item', X_NAME, 66);
-  col(X_QTY, 'Qty', 66, true);
-  col(X_PRICE, 'Price', 66, true);
-  col(X_AMT, 'Amount', 66, true);
-  doc.setFont('helvetica', 'normal');
-  lineY(68);
-
-  let y = 76;
-  const rowH = 8;
-  const items = bill.items || [];
-  items.forEach(it => {
-    const nameText = String(it.name || '');
-    const nameLines = doc.splitTextToSize(nameText, 92); // wrap name within ~92px width
-    const lines = Math.max(1, nameLines.length);
-    // New page if not enough space for wrapped row
-    if (y + (lines - 1) * rowH > 270) {
-      doc.addPage();
-      y = 20;
-    }
-    // First line
-    doc.text(String(it.code || ''), X_CODE, y);
-    doc.text(nameLines, X_NAME, y); // jsPDF prints multi-lines starting at y
-    col(X_QTY, String(it.qty || 0), y, true);
-    col(X_PRICE, `₹${fmtMoney(it.price)}`, y, true);
-    col(X_AMT, `₹${fmtMoney(it.total)}`, y, true);
-    y += rowH * lines;
+  doc.text(firm.name || 'Taheri Fireworks', pageWidth / 2, margin + 14, {
+    align: 'center',
   });
 
-  lineY(y + 2);
-  y += 10;
-  const subtotal = items.reduce((s, i) => s + (i.total || 0), 0);
-  const discount = bill.discount || 0;
-  const grand = (bill.grandTotal != null ? bill.grandTotal : (subtotal - discount));
-  rightText(`Subtotal: ₹${fmtMoney(subtotal)}`, y); y += 6;
-  rightText(`Discount: ₹${fmtMoney(discount)}`, y); y += 6;
-  doc.setFont('helvetica', 'bold');
-  rightText(`Grand Total: ₹${fmtMoney(grand)}`, y);
   doc.setFont('helvetica', 'normal');
-  y += 14;
-  doc.text('Thanks for shopping with Taheri Fireworks! Visit again.', 14, y);
+  doc.setFontSize(10);
+  const addr = (firm.addressLines || []).join(', ');
+  if (addr)
+    doc.text(addr, pageWidth / 2, margin + 20, { align: 'center' });
 
-  const filename = `Invoice_${bill.invoiceNo}.pdf`;
-  doc.save(filename);
+  const contactLine = [firm.phone, firm.email].filter(Boolean).join(' • ');
+  if (contactLine)
+    doc.text(contactLine, pageWidth / 2, margin + 26, { align: 'center' });
+
+  if (firm.gstin)
+    doc.text(`GSTIN: ${firm.gstin}`, pageWidth / 2, margin + 32, {
+      align: 'center',
+    });
+
+  doc.line(marginLeft, margin + 38, marginRight, margin + 38);
+
+  // Invoice meta info
+  doc.setFontSize(11);
+  const metaY = margin + 50;
+  doc.text(`Invoice #: ${bill.invoiceNo}`, marginLeft, metaY);
+  rightText(`Date: ${new Date(bill.date || Date.now()).toLocaleDateString()}`, metaY);
+
+  doc.text(`Customer: ${bill.customerName || 'Walk-in'}`, marginLeft, metaY + 8);
+  doc.text(`Phone: ${bill.customerPhone || '-'}`, marginLeft, metaY + 16);
+
+  // Table header
+  const headerHeight = 10;
+  let y = metaY + 35;
+
+  function drawHeader() {
+    // Grey background covering full table width
+    doc.setFillColor(240, 240, 240);
+    doc.rect(marginLeft, y, tableWidth, headerHeight, 'F');
+
+    // Column borders
+    doc.setDrawColor(0);
+    let curX = marginLeft;
+    for (let w of colWidths) {
+      doc.rect(curX, y, w, headerHeight);
+      curX += w;
+    }
+
+    // Center headings
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(10);
+
+    doc.text('S.No', X_SN + colWidths[0] / 2, y + 7, { align: 'center' });
+    doc.text('Code', X_CODE + colWidths[1] / 2, y + 7, { align: 'center' });
+    doc.text('Item', X_NAME + colWidths[2] / 2, y + 7, { align: 'center' });
+    doc.text('Qty', X_QTY + colWidths[3] / 2, y + 7, { align: 'center' });
+    doc.text('Price', X_PRICE + colWidths[4] / 2, y + 7, { align: 'center' });
+    doc.text('Amount', X_AMT + colWidths[5] / 2, y + 7, { align: 'center' });
+
+    y += headerHeight;
+  }
+
+  drawHeader();
+
+  // Table rows
+  const items = bill.items || [];
+  const lineHeight = 7;
+
+  items.forEach((item, idx) => {
+    const nameLines = doc.splitTextToSize(
+      String(item.name || ''),
+      colWidths[2] - 4
+    );
+    const rowHeight = nameLines.length * lineHeight;
+
+    // Page break
+    if (y + rowHeight + margin > pageHeight) {
+      doc.addPage();
+      doc.rect(margin / 2, margin / 2, pageWidth - margin, pageHeight - margin);
+      y = margin + 20;
+      drawHeader();
+    }
+
+    let curX = marginLeft;
+    for (let w of colWidths) {
+      doc.rect(curX, y, w, rowHeight);
+      curX += w;
+    }
+
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(10);
+
+    // Center each cell’s content
+    doc.text(String(idx + 1), X_SN + colWidths[0] / 2, y + 5, { align: 'center' });
+    doc.text(String(item.code || ''), X_CODE + colWidths[1] / 2, y + 5, { align: 'center' });
+    doc.text(nameLines, X_NAME + colWidths[2] / 2, y + 5, { align: 'center' });
+    doc.text(String(item.qty || 0), X_QTY + colWidths[3] / 2, y + 5, { align: 'center' });
+
+    doc.setFont('courier', 'normal'); // for numbers
+    doc.setFontSize(9);
+    doc.text(fmtMoney(item.price), X_PRICE + colWidths[4] / 2, y + 5, { align: 'center' });
+    doc.text(fmtMoney(item.total), X_AMT + colWidths[5] / 2, y + 5, { align: 'center' });
+
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(10);
+
+    y += rowHeight;
+  });
+
+  y += 10;
+
+  // Totals
+  const subtotal = items.reduce((sum, i) => sum + (i.total || 0), 0);
+  const discount = bill.discount || 0;
+  const grandTotal = bill.grandTotal != null ? bill.grandTotal : subtotal - discount;
+
+  // Totals box
+  const boxWidth = 110;
+  const boxHeight = 24;
+  const boxX = pageWidth - margin - boxWidth;
+  const boxY = y;
+  doc.setDrawColor(180);
+  doc.setLineWidth(0.5);
+  doc.setFillColor(250, 250, 250);
+  doc.rect(boxX, boxY, boxWidth, boxHeight, 'FD');
+
+  // Totals text inside box
+  doc.setFontSize(10);
+  doc.setFont('helvetica', 'normal');
+  const linePad = 7;
+  const textX = boxX + 8;
+  let textY = boxY + linePad;
+
+  doc.text(`Subtotal`, textX, textY);
+  doc.text(fmtMoney(subtotal), boxX + boxWidth - 8, textY, { align: 'right' });
+
+  textY += linePad;
+  doc.text(`Discount`, textX, textY);
+  doc.text(fmtMoney(discount), boxX + boxWidth - 8, textY, { align: 'right' });
+
+  textY += linePad;
+  doc.setFont('helvetica', 'bold');
+  doc.text(`Grand Total`, textX, textY);
+  doc.text(fmtMoney(grandTotal), boxX + boxWidth - 8, textY, { align: 'right' });
+  doc.setFont('helvetica', 'normal');
+
+  y += boxHeight + 8;
+
+  // Footer
+  doc.text(
+    'Thank you for shopping with Taheri Fireworks! Visit again.',
+    marginLeft,
+    y
+  );
+
+  doc.save(`Invoice_${bill.invoiceNo}.pdf`);
 }
+
 expose('generateBillPDF', generateBillPDF);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 // ---------- Bills list page ----------
 async function loadBills(){
@@ -489,11 +856,14 @@ async function loadStock() {
   if (!tableBody) return;
   const res = await fetch(`${API_BASE}/products`);
   const products = await res.json();
+products.sort((a, b) => Number(a.code) - Number(b.code));
+
   tableBody.innerHTML = products.map(p => `
     <tr>
       <td>${p.code}</td>
       <td>${p.name || ''}</td>
       <td><input class="input" type="number" value="${p.price || 0}" style="width:100px" id="price_${p.code}"></td>
+     <td><input class="input" type="number" value="${p.retailPrice || 0}" style="width:100px" id="retailPrice_${p.code}"></td>
       <td><input class="input" type="number" value="${p.stock || 0}" style="width:100px" id="stock_${p.code}"></td>
       <td class="actions">
         <button class="btn" onclick="saveProductUpdate('${p.code}')">Save</button>
@@ -505,12 +875,14 @@ async function loadStock() {
 expose('loadStock', loadStock);
 
 async function saveProductUpdate(code) {
+  // const name = qs(`name_${code}`).value.trim();
   const price = parseFloat(qs(`price_${code}`).value || 0);
+  const retailPrice = parseFloat(qs(`retailPrice_${code}`).value || 0);
   const stock = parseInt(qs(`stock_${code}`).value || 0, 10);
   const res = await fetch(`${API_BASE}/products/${encodeURIComponent(code)}`, {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ price, stock })
+    body: JSON.stringify({  price, retailPrice, stock })
   });
   if (res.ok) {
     alert('✅ Updated');

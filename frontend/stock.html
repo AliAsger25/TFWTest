@@ -17,15 +17,35 @@
       overflow-x: hidden;
       position: relative;
     }
- 
-    /* Stock Table adjustments */
+
+    /* Header row containing Stock + search */
+    .stock-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    .stock-header h2 {
+      margin: 0;
+    }
+    .autocomplete {
+      flex: 1;
+      max-width: 300px;
+      position: relative;
+    }
+    .autocomplete input {
+      width: 100%;
+    }
+
+    /* Table styling overrides */
     table {
       width: 100%;
       border-collapse: collapse;
-      table-layout: fixed; /* prevent uneven expansion */
+      table-layout: fixed;
     }
     th, td {
-      padding: 12px 16px;
+      padding: 12px 8px;
       text-align: left;
       border-bottom: 1px solid rgba(255,255,255,0.1);
       word-wrap: break-word;
@@ -39,18 +59,28 @@
       font-size: 0.95rem;
     }
 
-    /* Ensure Actions column has enough space */
-    th.actions-header, td.actions-cell {
-      width: 160px; /* 👈 enough room for buttons */
+    /* Serial number column */
+    th.serial-header,
+    td.serial-cell {
+      width: 50px;
       text-align: center;
+    }
+
+    /* Actions column (unified fix) */
+    th.actions-header,
+    td.actions-cell {
+      min-width: 160px;
+      max-width: 200px;
+      text-align: center;
+      white-space: nowrap;
     }
 
     td.actions-cell {
       display: flex;
       justify-content: center;
-      gap: 8px;
+      gap: 6px;
       align-items: center;
-      white-space: nowrap;
+      flex-wrap: nowrap;
     }
     td.actions-cell .btn {
       padding: 6px 12px;
@@ -60,17 +90,25 @@
       text-align: center;
     }
 
-    /* Responsive fix */
+    /* Mobile responsive */
     @media (max-width: 700px) {
-      td.actions-cell {
+      .stock-header {
         flex-direction: column;
-        gap: 6px;
+        align-items: flex-start;
       }
-      th.actions-header, td.actions-cell {
-        width: auto;
+      .card-body {
+        overflow-x: auto;
+      }
+      td.actions-cell {
+        display: block;
+        width: 100%;
+        min-width: 120px;
+        max-width: 100vw;
+        text-align: center;
       }
       td.actions-cell .btn {
         width: 100%;
+        margin-bottom: 6px;
       }
     }
   </style>
@@ -81,10 +119,11 @@
     <div class="logo">🎇 Taheri Fireworks</div>
     <ul class="nav-links">
       <li><a href="index.html">Home</a></li>
-      <li><a href="create-bill.html">Create Bill</a></li>
-      <li><a href="bills.html">Bills</a></li>
+      <li><a href="create-bill.html">Wholesale Bill</a></li>
+      <li><a href="create-bill-retail.html">Reatil Bill</a></li>
+      <li><a href="bills.html">All Bills</a></li>
       <li><a href="stock.html">Stock</a></li>
-      <li><a href="#contact">Contact</a></li>
+      <li><a href="index.html#contact">Contact</a></li>
     </ul>
     <div class="actions">
       <button class="btn" onclick="openAddProductModal()">+ Add Product</button>
@@ -93,79 +132,154 @@
   </nav>
 
   <main class="container section">
-    <h2>Stock</h2>
+    <div class="stock-header">
+      <h2>Stock</h2>
+      <div class="autocomplete">
+        <input class="input" type="text" id="productCode" placeholder="Type code or name" oninput="onProductSearchInput()" autocomplete="off">
+        <div id="productSuggest" class="autocomplete-list" style="display:none"></div>
+      </div>
+    </div>
+
     <div class="card mt-3">
-      <div class="card-body">
+      <div class="card-body" style="overflow-x: auto;">
         <table id="stockTable" class="table">
           <thead>
             <tr>
+              <th class="serial-header">#</th>
               <th>Code</th>
               <th>Name</th>
-              <th>Price</th>
+              <th>Wholesale Price</th>
+              <th>Retail Price</th>
               <th>Stock</th>
               <th class="actions-header">Actions</th>
             </tr>
           </thead>
           <tbody>
-            <!-- Example row (JS will generate these dynamically) -->
-            <tr>
-              <td>1</td>
-              <td>Sparklers 9cm</td>
-              <td><input type="text" value="55"></td>
-              <td><input type="text" value="490"></td>
-              <td class="actions-cell">
-                <button class="btn">Save</button>
-                <button class="btn danger">Delete</button>
-              </td>
-            </tr>
+            <!-- Dynamic rows injected here -->
           </tbody>
         </table>
       </div>
     </div>
   </main>
 
-
- <!-- Add Product Modal -->
- <div id="productModal" class="modal">
-  <div class="modal-content">
-    <div class="modal-header">
-      <h3>Add New Product</h3>
-      <button class="close" onclick="closeAddProductModal()">×</button>
-    </div>
-    <div class="modal-body">
-      <div class="grid cols-2">
-        <div>
-          <label class="label">Code</label>
-          <input class="input" type="text" id="prodCode" placeholder="e.g. TF1001">
-        </div>
-        <div>
-          <label class="label">Name</label>
-          <input class="input" type="text" id="prodName" placeholder="Product name">
-        </div>
-        <div>
-          <label class="label">Price</label>
-          <input class="input" type="number" id="prodPrice" placeholder="0">
-        </div>
-        <div>
-          <label class="label">Stock</label>
-          <input class="input" type="number" id="prodStock" placeholder="0">
-        </div>
+  <!-- Add Product Modal -->
+  <div id="productModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>Add New Product</h3>
+        <button class="close" onclick="closeAddProductModal()">×</button>
       </div>
-      <div class="mt-4">
-        <button class="btn primary" onclick="saveProduct()">Save Product</button>
-        <button class="btn" onclick="closeAddProductModal()">Cancel</button>
+      <div class="modal-body">
+        <div class="grid cols-2">
+          <div>
+            <label class="label">Code</label>
+            <input class="input" type="text" id="prodCode" placeholder="e.g. TF1001">
+          </div>
+          <div>
+            <label class="label">Name</label>
+            <input class="input" type="text" id="prodName" placeholder="Product name">
+          </div>
+          <div>
+            <label class="label">Wholesale Price</label>
+            <input class="input" type="number" id="prodPrice" placeholder="0">
+          </div>
+          <div>
+            <label class="label">Retail Price</label>
+            <input class="input" type="number" id="prodRetailPrice" placeholder="0">
+          </div>
+          <div>
+            <label class="label">Stock</label>
+            <input class="input" type="number" id="prodStock" placeholder="0">
+          </div>
+        </div>
+        <div class="mt-4">
+          <button class="btn primary" onclick="saveProduct()">Save Product</button>
+          <button class="btn" onclick="closeAddProductModal()">Cancel</button>
+        </div>
       </div>
     </div>
   </div>
-</div>
 
-
-<script src="assets/config.js"></script>
-<script src="assets/script.js"></script>
+  <script src="assets/config.js"></script>
+  <script src="assets/script.js"></script>
   <script>
+    // ✅ We only tweak loadStock to add serial numbers
+    async function loadStock() {
+      const tableBody = document.querySelector('#stockTable tbody');
+      if (!tableBody) return;
+      const res = await fetch(`${API_BASE}/products`);
+      let products = await res.json();
+      products = products.sort((a, b) => String(a.code).localeCompare(String(b.code), undefined, { numeric: true, sensitivity: 'base' }));
+      tableBody.innerHTML = products.map((p, i) => `
+        <tr>
+          <td class="serial-cell">${i + 1}</td>
+          <td><input class="input" type="text" id="code_${p.code}" value="${p.code}"></td>
+          <td><input class="input" type="text" id="name_${p.code}" value="${p.name || ''}"></td>
+          <td><input class="input" type="number" id="price_${p.code}" value="${p.price || 0}"></td>
+          <td><input class="input" type="number" id="retailPrice_${p.code}" value="${p.retailPrice || 0}"></td>
+          <td><input class="input" type="number" id="stock_${p.code}" value="${p.stock || 0}"></td>
+          <td class="actions-cell">
+            <button class="btn" onclick="saveProductUpdate('${p.code}')">Save</button>
+            <button class="btn danger" onclick="deleteProduct('${p.code}')">Delete</button>
+          </td>
+        </tr>
+      `).join('');
+    }
+
     document.addEventListener('DOMContentLoaded', () => {
       if (typeof loadStock === 'function') loadStock();
     });
+
+    // Scroll to product in table when selected from search
+    window.selectProductSuggestion = function(encodedCode) {
+      const code = decodeURIComponent(encodedCode);
+      const el = document.getElementById('productCode');
+      if (el) el.value = code;
+      const list = document.getElementById('productSuggest');
+      if (list){ list.style.display='none'; list.innerHTML=''; }
+      // Try to scroll to the product row
+      setTimeout(() => {
+        const rowInput = document.getElementById(`code_${code}`);
+        if (rowInput) {
+          rowInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          rowInput.focus();
+        }
+      }, 200);
+    }
+
+    // Save product update
+    window.saveProductUpdate = async function(code) {
+      const newCode = document.getElementById(`code_${code}`).value.trim();
+      const name = document.getElementById(`name_${code}`).value.trim();
+      const price = parseFloat(document.getElementById(`price_${code}`).value || 0);
+      const retailPrice = parseFloat(document.getElementById(`retailPrice_${code}`).value || 0);
+      const stock = parseInt(document.getElementById(`stock_${code}`).value || 0, 10);
+      const res = await fetch(`${API_BASE}/products/${encodeURIComponent(code)}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code: newCode, name, price, retailPrice, stock })
+      });
+      if (res.ok) {
+        alert('✅ Updated');
+        loadStock();
+      } else {
+        const { error } = await res.json().catch(() => ({}));
+        alert('❌ Update failed' + (error ? `: ${error}` : ''));
+      }
+    }
+
+    // Delete product
+    window.deleteProduct = async function(code) {
+      if (!confirm(`Delete product ${code}?`)) return;
+      const res = await fetch(`${API_BASE}/products/${encodeURIComponent(code)}`, { method: 'DELETE' });
+      if (res.ok) {
+        alert('✅ Deleted');
+        loadStock();
+      } else {
+        const { error } = await res.json().catch(() => ({}));
+        alert('❌ Delete failed' + (error ? `: ${error}` : ''));
+      }
+    }
   </script>
 </body>
 </html>

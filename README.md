@@ -1,3 +1,25 @@
+# Deployment on Render
+
+## Steps to Deploy
+
+1. Push your code to GitHub.
+2. Go to https://render.com and create a new Web Service.
+3. Connect your GitHub repo.
+4. Set the build command (if needed):
+  - For Node.js: `npm install`
+5. Set the start command:
+  - `npm start` (make sure your backend/package.json has "start": "node server.js")
+6. Set environment variables:
+  - `PORT` (Render sets this automatically)
+  - `MONGO_URI` (your MongoDB Atlas connection string)
+  - Any other secrets (Twilio, etc.)
+7. Your Express backend will serve the frontend from the `frontend` folder.
+8. Access your site via the Render-provided URL.
+
+## Notes
+- API requests use relative path `/api` so frontend and backend work together on Render.
+- If you use a custom domain, set it up in Render dashboard.
+- For static assets, make sure they are in the `frontend/assets` folder.
 # Taheri Fireworks Billing
 
 A billing and inventory web app for a local shop with a modern UI, automatic PDF invoices, and customer SMS notifications.
