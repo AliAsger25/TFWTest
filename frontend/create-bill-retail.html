@@ -1,201 +1,19 @@
-  <main class="container section">
-    <h2>Create Retail Invoice</h2>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Create Retail Invoice</title>
+  <link rel="stylesheet" href="assets/style.css" />
+</head>
+<body>
 
-    <div class="card"><div class="card-body">
-      <h3>Customer</h3>
-      <div class="grid cols-2">
-        <div>
-          <label class="label">Name</label>
-          <input class="input" type="text" id="customerName" placeholder="Walk-in">
-        </div>
-        <div>
-          <label class="label">Phone</label>
-          <input class="input" type="text" id="customerPhone" placeholder="e.g. +91XXXXXXXXXX">
-        </div>
-      </div>
-    </div></div>
-
-    <div class="card"><div class="card-body">
-      <h3>Add Item</h3>
-      <div class="grid cols-3">
-        <div>
-          <label class="label">Product Code</label>
-          <div class="autocomplete">
-            <input class="input" type="text" id="productCode" placeholder="Type code or name" oninput="onProductSearchInput()" autocomplete="off">
-            <div id="productSuggest" class="autocomplete-list" style="display:none"></div>
-          </div>
-        </div>
-        <div>
-          <label class="label">Quantity</label>
-          <input class="input" type="number" id="qty" min="1" value="1">
-        </div>
-        <div>
-          <label class="label" style="visibility:hidden">Add</label>
-          <button class="btn primary" onclick="addToRetailBill()">Add</button>
-        </div>
-      </div>
-      <p class="small mt-2">Tip: Use product codes for quick entry. Stock is validated on save.</p>
-    </div></div>
-
-    <div class="card mt-4"><div class="card-body">
-      <div class="flex items-center justify-between">
-        <h3>Items</h3>
-      </div>
-
-      <!-- Table with Serial Number Column -->
-      <table id="billTable" class="table mt-2">
-        <thead>
-          <tr>
-            <th style="width:6%">S.No</th>
-            <th style="width:12%">Code</th>
-            <th>Item</th>
-            <th style="width:14%">Qty</th>
-            <th style="width:14%">Price</th>
-            <th style="width:14%">Amount</th>
-            <th class="actions-header" style="width:12%">Action</th>
-          </tr>
-        </thead>
-        <tbody></tbody>
-      </table>
-
-      <div class="grid cols-3 mt-3">
-        <div></div>
-        <div></div>
-        <div>
-          <div class="flex items-center justify-between"><span class="small">Subtotal</span><span id="subtotal">₹0.00</span></div>
-          <div class="flex items-center justify-between mt-2"><span class="small">Discount</span>
-            <input class="input" type="number" id="discount" value="0" min="0" step="0.01" />
-          </div>
-          <div class="flex items-center justify-between mt-2"><strong>Grand Total</strong><strong>₹<span id="grandTotal">0.00</span></strong></div>
-        </div>
-      </div>
-
-      <div class="mt-4 flex items-center justify-between">
-        <div class="small"></div>
-        <div>
-          <button class="btn" onclick="window.location.href='index.html'">Cancel</button>
-          <button class="btn primary" onclick="saveRetailBill()">Save & Download</button>
-        </div>
-      </div>
-    </div></div>
-  </main>
-            <th>Item</th>
-            <th style="width:14%">Qty</th>
-            <th style="width:14%">Price</th>
-            <th style="width:14%">Amount</th>
-            <th class="actions-header" style="width:12%">Action</th>
-          </tr>
-        </thead>
-        <tbody></tbody>
-      </table>
-
-      <div class="grid cols-3 mt-3">
-        <div></div>
-        <div></div>
-        <div>
-          <div class="flex items-center justify-between"><span class="small">Subtotal</span><span id="subtotal">₹0.00</span></div>
-          <div class="flex items-center justify-between mt-2"><span class="small">Discount</span>
-            <input class="input" type="number" id="discount" value="0" min="0" step="0.01" />
-          </div>
-          <div class="flex items-center justify-between mt-2"><strong>Grand Total</strong><strong>₹<span id="grandTotal">0.00</span></strong></div>
-        </div>
-      </div>
-
-      <div class="mt-4 flex items-center justify-between">
-        <div class="small"></div>
-        <div>
-          <button class="btn" onclick="window.location.href='index.html'">Cancel</button>
-          <button class="btn primary" onclick="saveRetailBill()">Save & Download</button>
-        </div>
-      </div>
-    </div></div>
-  </main>
-
-  <script src="assets/script.js"></script>
-</body>
-</html>
-      <div class="card"><div class="card-body">
-        <h3>Customer</h3>
-        <div class="grid cols-2">
-          <div>
-            <label class="label">Name</label>
-            <input class="input" type="text" id="customerName" placeholder="Walk-in">
-          </div>
-          <div>
-            <label class="label">Phone</label>
-            <input class="input" type="text" id="customerPhone" placeholder="e.g. +91XXXXXXXXXX">
-          </div>
-        </div>
-      </div></div>
-
-      <div class="card"><div class="card-body">
-        <h3>Add Item</h3>
-        <div class="grid cols-3">
-          <div>
-            <label class="label">Product Code</label>
-            <div class="autocomplete">
-              <input class="input" type="text" id="productCode" placeholder="Type code or name" oninput="onProductSearchInput()" autocomplete="off">
-              <div id="productSuggest" class="autocomplete-list" style="display:none"></div>
-            </div>
-          </div>
-          <div>
-            <label class="label">Quantity</label>
-            <input class="input" type="number" id="qty" min="1" value="1">
-          </div>
-          <div>
-            <label class="label" style="visibility:hidden">Add</label>
-            <button class="btn primary" onclick="addToRetailBill()">Add</button>
-          </div>
-        </div>
-        <p class="small mt-2">Tip: Use product codes for quick entry. Stock is validated on save.</p>
-      </div></div>
-    </div>
-
-    <div class="card mt-4"><div class="card-body">
-      <div class="flex items-center justify-between">
-        <h3>Items</h3>
-      </div>
-
-      <!-- Table with Serial Number Column -->
-      <table id="billTable" class="table mt-2">
-        <thead>
-          <tr>
-            <th style="width:6%">S.No</th>
-            <th style="width:12%">Code</th>
-            <th>Item</th>
-            <th style="width:14%">Qty</th>
-            <th style="width:14%">Price</th>
-            <th style="width:14%">Amount</th>
-            <th class="actions-header" style="width:10%">Action</th>
-          </tr>
-        </thead>
-        <tbody></tbody>
-      </table>
-
-      <div class="grid cols-3 mt-3">
-        <div></div>
-        <div></div>
-        <div>
-          <div class="flex items-center justify-between"><span class="small">Subtotal</span><span id="subtotal">₹0.00</span></div>
-          <div class="flex items-center justify-between mt-2"><span class="small">Discount</span>
-            <input class="input" type="number" id="discount" value="0" min="0" step="0.01" />
-          </div>
-          <div class="flex items-center justify-between mt-2"><strong>Grand Total</strong><strong>₹<span id="grandTotal">0.00</span></strong></div>
-        </div>
-      </div>
-
-      <div class="mt-4 flex items-center justify-between">
-        <div class="small"></div>
-        <div>
-          <button class="btn" onclick="window.location.href='index.html'">Cancel</button>
-          <button class="btn primary" onclick="saveRetailBill()">Save & Download</button>
-        </div>
-      </div>
-    </div></div>
+  <!-- ✅ Navigation -->
+  <nav class="navbar">
     <ul class="nav-links">
       <li><a href="index.html">Home</a></li>
       <li><a href="create-bill.html">Wholesale Bill</a></li>
-      <li><a href="create-bill-retail.html">Retail Bill</a></li>
+      <li><a href="create-bill-retail.html" class="active">Retail Bill</a></li>
       <li><a href="bills.html">All Bills</a></li>
       <li><a href="stock.html">Stock</a></li>
       <li><a href="index.html#contact">Contact</a></li>
@@ -205,87 +23,100 @@
     </div>
   </nav>
 
+  <!-- ✅ Main Section -->
   <main class="container section">
     <h2>Create Retail Invoice</h2>
 
-    <!-- Add Item Block -->
-    <div class="card"><div class="card-body">
-      <h3>Customer</h3>
-      <div class="grid cols-2">
-        <div>
-          <label class="label">Name</label>
-          <input class="input" type="text" id="customerName" placeholder="Walk-in">
-        </div>
-        <div>
-          <label class="label">Phone</label>
-          <input class="input" type="text" id="customerPhone" placeholder="e.g. +91XXXXXXXXXX">
-        </div>
-      </div>
-    </div></div>
-
-    <div class="card"><div class="card-body">
-      <h3>Add Item</h3>
-      <div class="grid cols-3">
-        <div>
-          <label class="label">Product Code</label>
-          <div class="autocomplete">
-            <input class="input" type="text" id="productCode" placeholder="Type code or name" oninput="onProductSearchInput()" autocomplete="off">
-            <div id="productSuggest" class="autocomplete-list" style="display:none"></div>
+    <!-- ✅ Customer Card -->
+    <div class="card mt-3">
+      <div class="card-body">
+        <h3>Customer</h3>
+        <div class="grid cols-2">
+          <div>
+            <label class="label">Name</label>
+            <input class="input" type="text" id="customerName" placeholder="Walk-in" />
+          </div>
+          <div>
+            <label class="label">Phone</label>
+            <input class="input" type="text" id="customerPhone" placeholder="e.g. +91XXXXXXXXXX" />
           </div>
         </div>
-        <div>
-          <label class="label">Quantity</label>
-          <input class="input" type="number" id="qty" min="1" value="1">
-        </div>
-        <div>
-          <label class="label" style="visibility:hidden">Add</label>
-          <button class="btn primary" onclick="addToRetailBill()">Add</button>
-        </div>
       </div>
-      <p class="small mt-2">Tip: Use product codes for quick entry. Stock is validated on save.</p>
-    </div></div>
+    </div>
 
-    <div class="card mt-4"><div class="card-body">
-      <div class="flex items-center justify-between">
-        <h3>Items</h3>
-      </div>
-
-      <!-- Table with Serial Number Column -->
-      <table id="billTable" class="table mt-2">
-        <thead>
-          <tr>
-            <th style="width:6%">S.No</th>   <!-- 🔹 new column -->
-            <th style="width:12%">Code</th>
-            <th>Item</th>
-            <th style="width:14%">Qty</th>
-            <th style="width:14%">Price</th>
-            <th style="width:14%">Amount</th>
-            <th style="width:10%">Action</th>
-          </tr>
-        </thead>
-        <tbody></tbody>
-      </table>
-
-      <div class="grid cols-3 mt-3">
-        <div></div>
-        <div></div>
-        <div>
-          <div class="flex items-center justify-between"><span class="small">Subtotal</span><span id="subtotal">₹0.00</span></div>
-          <div class="flex items-center justify-between mt-2"><span class="small">Discount</span>
-            <input class="input" type="number" id="discount" value="0" min="0" step="0.01" />
+    <!-- ✅ Add Item Card -->
+    <div class="card mt-3">
+      <div class="card-body">
+        <h3>Add Item</h3>
+        <div class="grid cols-3">
+          <div>
+            <label class="label">Product Code</label>
+            <div class="autocomplete">
+              <input class="input" type="text" id="productCode" placeholder="Type code or name" oninput="onProductSearchInput()" autocomplete="off" />
+              <div id="productSuggest" class="autocomplete-list" style="display:none"></div>
+            </div>
           </div>
-          <div class="flex items-center justify-between mt-2"><strong>Grand Total</strong><strong>₹<span id="grandTotal">0.00</span></strong></div>
+          <div>
+            <label class="label">Quantity</label>
+            <input class="input" type="number" id="qty" min="1" value="1" />
+          </div>
+          <div class="flex items-end">
+            <button class="btn primary w-full" onclick="addToRetailBill()">Add</button>
+          </div>
         </div>
+        <p class="small mt-2">Tip: Use product codes for quick entry. Stock is validated on save.</p>
       </div>
+    </div>
 
-      <div class="mt-4 flex items-center justify-between">
-        <div class="small"></div>
-        <div>
+    <!-- ✅ Items Table -->
+    <div class="card mt-4">
+      <div class="card-body">
+        <div class="flex items-center justify-between mb-2">
+          <h3>Items</h3>
+        </div>
+
+        <table id="billTable" class="table">
+          <thead>
+            <tr>
+              <th style="width:6%">S.No</th>
+              <th style="width:12%">Code</th>
+              <th>Item</th>
+              <th style="width:14%">Qty</th>
+              <th style="width:14%">Price</th>
+              <th style="width:14%">Amount</th>
+              <th style="width:10%">Action</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+
+        <!-- ✅ Totals Section -->
+        <div class="grid cols-3 mt-3">
+          <div></div>
+          <div></div>
+          <div>
+            <div class="flex items-center justify-between">
+              <span class="small">Subtotal</span>
+              <span id="subtotal">₹0.00</span>
+            </div>
+            <div class="flex items-center justify-between mt-2">
+              <span class="small">Discount</span>
+              <input class="input" type="number" id="discount" value="0" min="0" step="0.01" />
+            </div>
+            <div class="flex items-center justify-between mt-2">
+              <strong>Grand Total</strong>
+              <strong>₹<span id="grandTotal">0.00</span></strong>
+            </div>
+          </div>
+        </div>
+
+        <!-- ✅ Action Buttons -->
+        <div class="mt-4 flex items-center justify-end">
           <button class="btn" onclick="window.location.href='index.html'">Cancel</button>
-          <button class="btn primary" onclick="saveRetailBill()">Save & Download</button>
+          <button class="btn primary ml-2" onclick="saveRetailBill()">Save & Download</button>
         </div>
       </div>
-    </div></div>
+    </div>
   </main>
 
   <script src="assets/script.js"></script>
