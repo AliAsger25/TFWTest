@@ -464,7 +464,8 @@ expose('saveBill', saveBill);
 
 // ---------- PDF Generation (Create Bill page) ----------
 
-async function generateBillPDF(bill) {
+// Build and return a jsPDF document for a bill (does not save)
+async function buildInvoiceDoc(bill) {
   const jsPDF = window.jspdf?.jsPDF;
   if (!jsPDF) throw new Error('jsPDF not loaded');
   const doc = new jsPDF();
@@ -688,7 +689,28 @@ async function generateBillPDF(bill) {
     y
   );
 
+  return doc;
+}
+
+// Generate and download PDF for a bill (existing behavior)
+async function generateBillPDF(bill) {
+  const doc = await buildInvoiceDoc(bill);
   doc.save(`Invoice_${bill.invoiceNo}.pdf`);
+}
+
+// Generate PDF and return base64 (no data prefix)
+async function generateBillPDFBase64(bill) {
+  const doc = await buildInvoiceDoc(bill);
+  const arrayBuffer = doc.output('arraybuffer');
+  const bytes = new Uint8Array(arrayBuffer);
+  // convert to binary string in chunks to avoid call stack limits
+  const chunkSize = 0x8000;
+  let binary = '';
+  for (let i = 0; i < bytes.length; i += chunkSize) {
+    const slice = bytes.subarray(i, i + chunkSize);
+    binary += String.fromCharCode.apply(null, slice);
+  }
+  return btoa(binary);
 }
 
 expose('generateBillPDF', generateBillPDF);
@@ -842,9 +864,21 @@ async function serverSendWhatsapp(invoiceNo){
     targetBtn.textContent = 'Sending...';
   }
   try {
-    const res = await fetch(`${API_BASE}/bills/${encodeURIComponent(invoiceNo)}/send-whatsapp-pdf`, { method: 'POST' });
+    // Load bill from server to build PDF
+    const billRes = await fetch(`${API_BASE}/bills/${encodeURIComponent(invoiceNo)}`);
+    if (!billRes.ok) return toast('Failed to load bill for PDF generation', true);
+    const bill = await billRes.json();
+
+    // Generate base64 PDF and POST to server
+    const pdfBase64 = await generateBillPDFBase64(bill);
+    const res = await fetch(`${API_BASE}/bills/${encodeURIComponent(invoiceNo)}/send-whatsapp-pdf`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ pdfBase64 })
+    });
+
     if (res.ok) {
-      toast('WhatsApp PDF sent (server requested)');
+      toast('WhatsApp PDF send requested');
     } else {
       const { error } = await res.json().catch(() => ({}));
       toast('Failed to send WhatsApp: ' + (error || 'Server error'), true);
