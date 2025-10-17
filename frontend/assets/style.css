@@ -90,7 +90,7 @@ input, select, textarea {
   border: 1px solid var(--border); padding: 10px 12px;
   border-radius: 10px; outline: none;
 }
-input[type="search"] { -webkit-appearance: none; }
+input[type="search"] { -webkit-appearance: none; appearance: none; }
 .label { display: block; font-size: 13px; color: var(--muted); margin-bottom: 6px; }
 
 /* Autocomplete dropdown */
@@ -112,7 +112,7 @@ input[type="search"] { -webkit-appearance: none; }
   border: 1px solid var(--border);
   border-radius: 12px;
   overflow: hidden;
-  table-layout: auto; /* allow columns to size to content */
+  table-layout: fixed; /* use fixed layout so header widths are respected */
 }
 .table th, .table td {
   padding: 10px 12px;
@@ -136,10 +136,13 @@ input[type="search"] { -webkit-appearance: none; }
 /* Actions column (✅ unified fix) */
 .table th.actions-header,
 .table td.actions-cell {
+  /* Reserve a wider fixed column for actions to avoid overlap */
+  width: 340px;
   min-width: 220px;
-  max-width: 260px;
+  max-width: 420px;
   text-align: center;
   white-space: nowrap;
+  box-sizing: border-box;
 }
 .table td.actions-cell {
   display: flex;
