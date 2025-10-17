@@ -43,3 +43,26 @@ async function sendWhatsAppThankYou(to, bill){
 
 module.exports = { sendThankYouSMS, sendWhatsAppThankYou };
 
+// Server-side helper to send an invoice link or media over WhatsApp
+async function sendWhatsAppInvoice(to, bill, invoiceUrl){
+  if (!client) throw new Error('Twilio client not configured');
+  const from = process.env.TWILIO_WHATSAPP_FROM; // e.g., 'whatsapp:+14155238886'
+  if (!from) throw new Error('TWILIO_WHATSAPP_FROM not configured');
+  const dest = to?.startsWith('whatsapp:') ? to : `whatsapp:${to}`;
+  const body = `Thanks for shopping at Taheri Fireworks! Invoice #${bill.invoiceNo}. Total: ₹${fmtMoney(bill.grandTotal)}. View invoice: ${invoiceUrl}`;
+  // Twilio allows media messages; here we send plain text with link
+  await client.messages.create({ from, to: dest, body });
+}
+
+// Send WhatsApp message with media (PDF link)
+async function sendWhatsAppInvoiceMedia(to, bill, mediaUrl){
+  if (!client) throw new Error('Twilio client not configured');
+  const from = process.env.TWILIO_WHATSAPP_FROM;
+  if (!from) throw new Error('TWILIO_WHATSAPP_FROM not configured');
+  const dest = to?.startsWith('whatsapp:') ? to : `whatsapp:${to}`;
+  const body = `Thanks for shopping at Taheri Fireworks! Invoice #${bill.invoiceNo}. Total: ₹${fmtMoney(bill.grandTotal)}.`;
+  await client.messages.create({ from, to: dest, body, mediaUrl: [mediaUrl] });
+}
+
+module.exports = { sendThankYouSMS, sendWhatsAppThankYou, sendWhatsAppInvoice, sendWhatsAppInvoiceMedia };
+

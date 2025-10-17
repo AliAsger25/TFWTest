@@ -226,8 +226,8 @@ async function saveRetailBill() {
   // Build payload to send to server
   // We’re explicitly sending item.price (retail) and item.total
   const payload = {
-    // customerName: "Walk-in",
-    // customerPhone: "",
+    customerName: qs('customerName')?.value?.trim() || 'Walk-in',
+    customerPhone: qs('customerPhone')?.value?.trim() || '',
     items: billRetailItems
       .slice()
       .sort((a, b) =>
@@ -743,7 +743,7 @@ function renderBillsTable(bills){
         <button class="btn" onclick='editBill(${JSON.stringify(b.invoiceNo)})'>Edit</button>
         <button class="btn danger" onclick='deleteBill(${JSON.stringify(b.invoiceNo)})'>Delete</button>
         <button class="btn" onclick='downloadBill(${JSON.stringify(b.invoiceNo)})'>Download</button>
-        <button class="btn" onclick='shareBillWhatsApp(${JSON.stringify(b.invoiceNo)})'>WhatsApp</button>
+        <button class="btn" onclick='serverSendWhatsapp(${JSON.stringify(b.invoiceNo)})'>Send on whatsapp</button>
       </td>
     </tr>
   `).join('');
@@ -829,10 +829,75 @@ async function shareBillWhatsApp(invoiceNo){
   const url = `https://wa.me/${phone}?text=${text}`;
   window.open(url, '_blank');
 }
-expose('shareBillWhatsApp', shareBillWhatsApp);
+async function serverSendWhatsapp(invoiceNo){
+  if (!confirm(`Send invoice #${invoiceNo} on WhatsApp (PDF) to the stored customer number?`)) return;
+  // Disable matching buttons to avoid double-click
+  const btns = Array.from(document.querySelectorAll("button")).filter(b => b.textContent && b.textContent.trim().toLowerCase().includes('send on whatsapp') && b.onclick == null);
+  // show a quick spinner state on the clicked button
+  const clicked = event?.target || null;
+  const targetBtn = clicked && clicked.tagName === 'BUTTON' ? clicked : null;
+  if (targetBtn) {
+    targetBtn.disabled = true;
+    const orig = targetBtn.textContent;
+    targetBtn.textContent = 'Sending...';
+  }
+  try {
+    const res = await fetch(`${API_BASE}/bills/${encodeURIComponent(invoiceNo)}/send-whatsapp-pdf`, { method: 'POST' });
+    if (res.ok) {
+      toast('WhatsApp PDF sent (server requested)');
+    } else {
+      const { error } = await res.json().catch(() => ({}));
+      toast('Failed to send WhatsApp: ' + (error || 'Server error'), true);
+    }
+  } catch (e) {
+    toast('Failed to send WhatsApp: ' + (e.message || e), true);
+  } finally {
+    if (targetBtn) { targetBtn.disabled = false; targetBtn.textContent = 'Send on whatsapp'; }
+  }
+}
+expose('serverSendWhatsapp', serverSendWhatsapp);
+
+// Tiny toast notification helper
+function toast(msg, isError){
+  let container = document.getElementById('tfw-toast-container');
+  if (!container){
+    container = document.createElement('div');
+    container.id = 'tfw-toast-container';
+    container.style.position = 'fixed';
+    container.style.right = '20px';
+    container.style.top = '20px';
+    container.style.zIndex = 9999;
+    document.body.appendChild(container);
+  }
+  const el = document.createElement('div');
+  el.textContent = msg;
+  el.style.background = isError ? '#ff5252' : '#22c55e';
+  el.style.color = '#fff';
+  el.style.padding = '10px 14px';
+  el.style.marginTop = '8px';
+  el.style.borderRadius = '8px';
+  el.style.boxShadow = '0 6px 18px rgba(0,0,0,0.12)';
+  container.appendChild(el);
+  setTimeout(() => { el.style.opacity = '0'; setTimeout(() => el.remove(), 300); }, 3500);
+}
 
 // Edit bill: navigate to create-bill with invoice param
 function editBill(invoiceNo){
+  window.location.href = `create-bill.html?invoice=${encodeURIComponent(invoiceNo)}`;
+}
+// Edit bill: classify and route to retail or wholesale create page
+async function editBill(invoiceNo){
+  try {
+    const res = await fetch(`${API_BASE}/bills/${encodeURIComponent(invoiceNo)}/classify`);
+    if (res.ok){
+      const { type } = await res.json();
+      if (type === 'retail') {
+        window.location.href = `create-bill-retail.html?invoice=${encodeURIComponent(invoiceNo)}`;
+        return;
+      }
+    }
+  } catch (e) { /* ignore and fallback */ }
+  // default to wholesale editor
   window.location.href = `create-bill.html?invoice=${encodeURIComponent(invoiceNo)}`;
 }
 expose('editBill', editBill);
@@ -940,17 +1005,57 @@ async function initCreateBillPage(){
   const res = await fetch(`${API_BASE}/bills/${encodeURIComponent(inv)}`);
   if (!res.ok) return alert('Failed to load bill for editing');
   const bill = await res.json();
-  qs('customerName').value = bill.customerName || 'Walk-in';
-  qs('customerPhone').value = bill.customerPhone || '';
-  billItems = (bill.items || []).map(i => ({ code: i.code, name: i.name, qty: i.qty, price: i.price, total: i.total }));
-  const discountEl = qs('discount');
-  if (discountEl) discountEl.value = bill.discount || 0;
-  renderBillTable();
-  // Update the save button to "Update Bill"
-  const saveBtn = document.querySelector('button.btn.primary[onclick="saveBill()"]');
-  if (saveBtn) { saveBtn.textContent = 'Update Bill'; saveBtn.setAttribute('onclick', 'updateBill()'); }
+  // Determine whether we are on retail or wholesale page by pathname
+  const isRetailPage = window.location.pathname.endsWith('create-bill-retail.html');
+  if (isRetailPage) {
+    qs('customerName').value = bill.customerName || 'Walk-in';
+    qs('customerPhone').value = bill.customerPhone || '';
+    billRetailItems = (bill.items || []).map(i => ({ code: i.code, name: i.name, qty: i.qty, price: i.price, total: i.total }));
+    const discountEl = qs('discount');
+    if (discountEl) discountEl.value = bill.discount || 0;
+    renderRetailBillTable();
+    // Update the save button to "Update Bill"
+    const saveBtn = document.querySelector('button.btn.primary[onclick="saveRetailBill()"]');
+    if (saveBtn) { saveBtn.textContent = 'Update Bill'; saveBtn.setAttribute('onclick', 'updateRetailBill()'); }
+  } else {
+    qs('customerName').value = bill.customerName || 'Walk-in';
+    qs('customerPhone').value = bill.customerPhone || '';
+    billItems = (bill.items || []).map(i => ({ code: i.code, name: i.name, qty: i.qty, price: i.price, total: i.total }));
+    const discountEl = qs('discount');
+    if (discountEl) discountEl.value = bill.discount || 0;
+    renderBillTable();
+    // Update the save button to "Update Bill"
+    const saveBtn = document.querySelector('button.btn.primary[onclick="saveBill()"]');
+    if (saveBtn) { saveBtn.textContent = 'Update Bill'; saveBtn.setAttribute('onclick', 'updateBill()'); }
+  }
 }
 expose('initCreateBillPage', initCreateBillPage);
+
+async function updateRetailBill(){
+  const inv = window.__EDIT_INVOICE_NO__;
+  if (!inv) return;
+  const customerName = qs("customerName")?.value?.trim() || "Walk-in";
+  const customerPhone = qs("customerPhone")?.value?.trim() || "";
+  const discountInput = qs("discount");
+  retailBillDiscount = parseFloat(discountInput?.value || 0);
+  if (!billRetailItems.length) return alert('Add at least one product');
+  const grandTotal = billRetailItems.reduce((s, i) => s + i.total, 0) - (retailBillDiscount || 0);
+  const payload = {
+    customerName,
+    customerPhone,
+    items: billRetailItems.slice().sort((a, b) => String(a.code).localeCompare(String(b.code), undefined, { numeric: true, sensitivity: 'base' })),
+    discount: retailBillDiscount,
+    grandTotal: Math.max(0, grandTotal)
+  };
+  const res = await fetch(`${API_BASE}/bills/${encodeURIComponent(inv)}`, {
+    method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload)
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) return alert('❌ Update failed' + (data.error ? `: ${data.error}` : ''));
+  alert('✅ Bill updated');
+  window.location.href = 'bills.html';
+}
+expose('updateRetailBill', updateRetailBill);
 
 async function updateBill(){
   const inv = window.__EDIT_INVOICE_NO__;

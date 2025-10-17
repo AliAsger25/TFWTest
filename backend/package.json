@@ -15,6 +15,7 @@
     "dotenv": "^16.6.1",
     "express": "^5.1.0",
     "mongoose": "^8.17.2",
-    "twilio": "^5.8.0"
+    "twilio": "^5.8.0",
+    "puppeteer": "^20.9.0"
   }
 }

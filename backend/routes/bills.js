@@ -2,7 +2,8 @@ const express = require("express");
 const router = express.Router();
 const Bill = require("../models/Bill");
 const Product = require("../models/Product");
-const { sendThankYouSMS, sendWhatsAppThankYou } = require("../services/sms");
+const { sendThankYouSMS, sendWhatsAppThankYou, sendWhatsAppInvoice, sendWhatsAppInvoiceMedia } = require("../services/sms");
+const { generateInvoicePdf } = require('../services/pdf');
 
 // Get next invoice number
 async function getNextInvoiceNumber() {
@@ -82,6 +83,69 @@ router.get("/:invoiceNo", async (req, res) => {
     bill.items = (bill.items || []).sort((a, b) => String(a.code).localeCompare(String(b.code), undefined, { numeric: true, sensitivity: 'base' }));
   } catch (e) { /* ignore */ }
   res.json(bill);
+});
+
+// Classify bill type (retail vs wholesale) by comparing stored prices to product prices
+router.get('/:invoiceNo/classify', async (req, res) => {
+  try {
+    const invoiceNo = Number(req.params.invoiceNo);
+    const bill = await Bill.findOne({ invoiceNo });
+    if (!bill) return res.status(404).json({ error: 'Bill not found' });
+
+    // Default to wholesale unless all items match retailPrice
+    let allRetail = true;
+    for (const it of (bill.items || [])) {
+      const prod = await Product.findOne({ code: it.code });
+      if (!prod) { allRetail = false; break; }
+      if (Number(prod.retailPrice || 0) !== Number(it.price || 0)) { allRetail = false; break; }
+    }
+    res.json({ type: allRetail ? 'retail' : 'wholesale' });
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+});
+
+// Send invoice (or link) via WhatsApp using server-side Twilio integration (if configured)
+router.post('/:invoiceNo/send-whatsapp', async (req, res) => {
+  try {
+    const invoiceNo = Number(req.params.invoiceNo);
+    const bill = await Bill.findOne({ invoiceNo });
+    if (!bill) return res.status(404).json({ error: 'Bill not found' });
+    if (!bill.customerPhone) return res.status(400).json({ error: 'No customer phone stored on bill' });
+
+    // Build public invoice URL
+    const base = process.env.PUBLIC_BASE_URL || (`${req.protocol}://${req.get('host')}`);
+    const invoiceUrl = `${base.replace(/\/$/, '')}/invoice/${invoiceNo}`;
+
+    // Attempt to send via Twilio WhatsApp (media if available)
+    await sendWhatsAppInvoice(bill.customerPhone, bill, invoiceUrl);
+    res.json({ success: true });
+  } catch (err) {
+    console.error('send-whatsapp error', err);
+    res.status(500).json({ error: err.message || 'Failed to send WhatsApp' });
+  }
+});
+
+// Send invoice as PDF via WhatsApp (generates PDF with Puppeteer then sends as media)
+router.post('/:invoiceNo/send-whatsapp-pdf', async (req, res) => {
+  try {
+    const invoiceNo = Number(req.params.invoiceNo);
+    const bill = await Bill.findOne({ invoiceNo });
+    if (!bill) return res.status(404).json({ error: 'Bill not found' });
+    if (!bill.customerPhone) return res.status(400).json({ error: 'No customer phone stored on bill' });
+
+    // Generate PDF and get public path
+    const publicPath = await generateInvoicePdf(invoiceNo, req);
+    const base = process.env.PUBLIC_BASE_URL || (`${req.protocol}://${req.get('host')}`);
+    const mediaUrl = `${base.replace(/\/$/, '')}${publicPath}`;
+
+    // Send via Twilio WhatsApp as media
+    await sendWhatsAppInvoiceMedia(bill.customerPhone, bill, mediaUrl);
+    res.json({ success: true, mediaUrl });
+  } catch (err) {
+    console.error('send-whatsapp-pdf error', err);
+    res.status(500).json({ error: err.message || 'Failed to send WhatsApp PDF' });
+  }
 });
 
 // Update an existing bill (edit items and fields); adjusts stock based on deltas
