@@ -2,8 +2,10 @@ const express = require("express");
 const router = express.Router();
 const Bill = require("../models/Bill");
 const Product = require("../models/Product");
+const fs = require('fs');
+const path = require('path');
 const { sendThankYouSMS, sendWhatsAppThankYou, sendWhatsAppInvoice, sendWhatsAppInvoiceMedia } = require("../services/sms");
-const { generateInvoicePdf } = require('../services/pdf');
+// Note: server-side Puppeteer generation removed in favor of client-upload flow
 
 // Get next invoice number
 async function getNextInvoiceNumber() {
@@ -133,13 +135,21 @@ router.post('/:invoiceNo/send-whatsapp-pdf', async (req, res) => {
     const bill = await Bill.findOne({ invoiceNo });
     if (!bill) return res.status(404).json({ error: 'Bill not found' });
     if (!bill.customerPhone) return res.status(400).json({ error: 'No customer phone stored on bill' });
+    // Accept base64 PDF in body or query parameter 'pdfBase64'
+    const pdfBase64 = req.body.pdfBase64 || req.query.pdfBase64;
+    if (!pdfBase64) return res.status(400).json({ error: 'No pdfBase64 provided. Client must generate PDF and POST it.' });
 
-    // Generate PDF and get public path
-    const publicPath = await generateInvoicePdf(invoiceNo, req);
+    // Save PDF to uploads
+    const uploadsDir = path.join(__dirname, '..', '..', 'uploads');
+    if (!fs.existsSync(uploadsDir)) fs.mkdirSync(uploadsDir, { recursive: true });
+    const filename = `invoice_${invoiceNo}_${Date.now()}.pdf`;
+    const outPath = path.join(uploadsDir, filename);
+    const buffer = Buffer.from(pdfBase64, 'base64');
+    fs.writeFileSync(outPath, buffer);
+
     const base = process.env.PUBLIC_BASE_URL || (`${req.protocol}://${req.get('host')}`);
-    const mediaUrl = `${base.replace(/\/$/, '')}${publicPath}`;
+    const mediaUrl = `${base.replace(/\/$/, '')}/uploads/${filename}`;
 
-    // Send via Twilio WhatsApp as media
     await sendWhatsAppInvoiceMedia(bill.customerPhone, bill, mediaUrl);
     res.json({ success: true, mediaUrl });
   } catch (err) {
