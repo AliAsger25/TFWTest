@@ -739,7 +739,7 @@ function renderBillsTable(bills){
       <td>${b.customerName || 'Walk-in'}</td>
       <td>${b.customerPhone || '-'}</td>
       <td class="text-right">₹${fmtMoney(b.grandTotal)}</td>
-      <td class="actions">
+      <td class="actions-cell">
         <button class="btn" onclick='editBill(${JSON.stringify(b.invoiceNo)})'>Edit</button>
         <button class="btn danger" onclick='deleteBill(${JSON.stringify(b.invoiceNo)})'>Delete</button>
         <button class="btn" onclick='downloadBill(${JSON.stringify(b.invoiceNo)})'>Download</button>
