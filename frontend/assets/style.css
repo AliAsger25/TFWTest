@@ -26,6 +26,7 @@ body {
 }
 
 .container { max-width: 1100px; margin: 0 auto; padding: 24px; }
+.container { max-width: 1300px; }
 .section { padding: 28px 0; }
 
 .navbar {
@@ -111,7 +112,7 @@ input[type="search"] { -webkit-appearance: none; }
   border: 1px solid var(--border);
   border-radius: 12px;
   overflow: hidden;
-  table-layout: fixed; /* ✅ fixed layout */
+  table-layout: auto; /* allow columns to size to content */
 }
 .table th, .table td {
   padding: 10px 12px;
