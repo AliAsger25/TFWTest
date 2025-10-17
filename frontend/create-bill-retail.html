@@ -1,71 +1,86 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Create Retail Bill</title>
-  <link rel="stylesheet" href="assets/style.css">
-  <!-- jsPDF for invoice PDF generation -->
-  <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
-  <script src="assets/config.js"></script>
+    <h2>Create Retail Invoice</h2>
 
-  <style>
-    body {
-      margin: 0;
-      min-height: 100vh;
-      background: radial-gradient(circle at top left, #1a2240, #0c1222 70%);
-      background-attachment: fixed;
-      background-size: cover;
-      color: var(--text);
-      font-family: 'Inter', sans-serif;
-      overflow-x: hidden;
-      position: relative;
-    }
+    <div class="grid cols-2">
+      <div class="card"><div class="card-body">
+        <h3>Customer</h3>
+        <div class="grid cols-2">
+          <div>
+            <label class="label">Name</label>
+            <input class="input" type="text" id="customerName" placeholder="Walk-in">
+          </div>
+          <div>
+            <label class="label">Phone</label>
+            <input class="input" type="text" id="customerPhone" placeholder="e.g. +91XXXXXXXXXX">
+          </div>
+        </div>
+      </div></div>
 
-    /* Navbar */
-    .navbar {
-      width: 100%;
-      padding: 16px 32px;
-      background: rgba(10,16,32,0.95);
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      border-bottom: 1px solid rgba(255,255,255,0.08);
-      position: sticky;
-      top: 0;
-      z-index: 10;
-    }
-    .navbar .logo { font-size: 1.5rem; font-weight: bold; }
-    .nav-links { list-style: none; display: flex; gap: 24px; }
-    .nav-links a { text-decoration: none; color: #fff; font-weight: 500; transition: all 0.3s ease; }
-    .nav-links a:hover { color: #e67e22; transform: scale(1.1); }
+      <div class="card"><div class="card-body">
+        <h3>Add Item</h3>
+        <div class="grid cols-3">
+          <div>
+            <label class="label">Product Code</label>
+            <div class="autocomplete">
+              <input class="input" type="text" id="productCode" placeholder="Type code or name" oninput="onProductSearchInput()" autocomplete="off">
+              <div id="productSuggest" class="autocomplete-list" style="display:none"></div>
+            </div>
+          </div>
+          <div>
+            <label class="label">Quantity</label>
+            <input class="input" type="number" id="qty" min="1" value="1">
+          </div>
+          <div>
+            <label class="label" style="visibility:hidden">Add</label>
+            <button class="btn primary" onclick="addToRetailBill()">Add</button>
+          </div>
+        </div>
+        <p class="small mt-2">Tip: Use product codes for quick entry. Stock is validated on save.</p>
+      </div></div>
+    </div>
 
-    .actions { display: flex; gap: 12px; }
-    .btn {
-      padding: 8px 18px;
-      border-radius: 20px;
-      border: 1px solid rgba(255,255,255,0.2);
-      background: transparent;
-      color: #fff;
-      cursor: pointer;
-      font-weight: 600;
-      transition: all 0.3s ease;
-    }
-    .btn:hover { transform: scale(1.1); background: rgba(255,255,255,0.1); }
-    .btn.primary { background: linear-gradient(90deg,#e67e22,#4f6cb7); border: none; }
-    .btn.primary:hover { box-shadow: 0 0 15px rgba(230,126,34,0.7); }
+    <div class="card mt-4"><div class="card-body">
+      <div class="flex items-center justify-between">
+        <h3>Items</h3>
+      </div>
 
-    /* 🔹 Align Serial No center */
-    #billTable th:first-child,
-    #billTable td:first-child {
-      text-align: center;
-    }
-  </style>
-</head>
-<body>
-  <!-- Navbar -->
-  <nav class="navbar">
-    <div class="logo"><span>🎇</span> <span class="brand">Taheri Fireworks</span></div>
+      <!-- Table with Serial Number Column -->
+      <table id="billTable" class="table mt-2">
+        <thead>
+          <tr>
+            <th style="width:6%">S.No</th>
+            <th style="width:12%">Code</th>
+            <th>Item</th>
+            <th style="width:14%">Qty</th>
+            <th style="width:14%">Price</th>
+            <th style="width:14%">Amount</th>
+            <th class="actions-header" style="width:10%">Action</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+
+      <div class="grid cols-3 mt-3">
+        <div></div>
+        <div></div>
+        <div>
+          <div class="flex items-center justify-between"><span class="small">Subtotal</span><span id="subtotal">₹0.00</span></div>
+          <div class="flex items-center justify-between mt-2"><span class="small">Discount</span>
+            <input class="input" type="number" id="discount" value="0" min="0" step="0.01" />
+          </div>
+          <div class="flex items-center justify-between mt-2"><strong>Grand Total</strong><strong>₹<span id="grandTotal">0.00</span></strong></div>
+        </div>
+      </div>
+
+      <div class="mt-4 flex items-center justify-between">
+        <div class="small"></div>
+        <div>
+          <button class="btn" onclick="window.location.href='index.html'">Cancel</button>
+          <button class="btn primary" onclick="saveRetailBill()">Save & Download</button>
+        </div>
+      </div>
+    </div></div>
     <ul class="nav-links">
       <li><a href="index.html">Home</a></li>
       <li><a href="create-bill.html">Wholesale Bill</a></li>
